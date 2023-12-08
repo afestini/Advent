@@ -5,6 +5,7 @@ import day4;
 import day5;
 import day6;
 import day7;
+import day8;
 
 
 int main() {
@@ -21,13 +22,16 @@ int main() {
 	day4_2();
 
 	day5_1();
-	day5_2();
+//	day5_2();
 
 	day6_1();
 	day6_2();
 
 	day7_1();
 	day7_2();
+
+	day8_1();
+	day8_2();
 
 	return 0;
 }
