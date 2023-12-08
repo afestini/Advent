@@ -15,12 +15,13 @@ struct RangeMap {
 	vector<Entry> entries;
 
 	uint64_t LookUp(uint64_t x) const {
-		for (const auto& e : entries) {
-			if (x >= e.src && x < e.src + e.sz) {
-				return e.dst + (x - e.src);
-			}
-		}
-		return x;
+		const auto it = ranges::find_if(entries, [x](const auto& e) { return x >= e.src && x < e.src + e.sz; });
+		return (it != entries.end()) ? (it->dst + (x - it->src)) : x;
+	}
+
+	uint64_t ReverseLookUp(uint64_t x) const {
+		const auto it = ranges::find_if(entries, [x](const auto& e) { return x >= e.dst && x < e.dst + e.sz; });
+		return (it != entries.end()) ? (it->src + (x - it->dst)) : x;
 	}
 };
 
@@ -30,7 +31,7 @@ struct Almanac {
 };
 
 
-Almanac ParseTables() {
+static Almanac ParseTables() {
 	ifstream input("day5.txt");
 	if (!input) return {};
 
@@ -64,6 +65,24 @@ static uint64_t FindLocation(const Almanac& almanac, uint64_t seed) {
 }
 
 
+static uint64_t FindSeed(const Almanac& almanac, uint64_t loc) {
+	uint64_t search = loc;
+	for (const auto& table : almanac.tables | views::reverse) {
+		search = table.ReverseLookUp(search);
+	}
+	return search;
+}
+
+
+static bool HaveSeed(const Almanac& almanac, uint64_t seed) {
+	const auto seed_ranges = almanac.seeds | views::chunk(2);
+	for (const auto& range : seed_ranges) {
+		if (seed >= range.front() && seed < range.front() + range.back()) return true;
+	}
+	return false;
+}
+
+
 export void day5_1() {
 	const auto almanac = ParseTables();
 
@@ -77,30 +96,38 @@ export void day5_1() {
 }
 
 
+
 export void day5_2() {
 	const auto almanac = ParseTables();
 
-	uint64_t min_loc = numeric_limits<uint64_t>::max();
-	mutex mtx;
-
 	const auto start = chrono::high_resolution_clock::now();
 
-	// Too lazy for a smarter approach... bring coffee
-	const auto seed_ranges = almanac.seeds | views::chunk(2);
-	for_each(execution::par_unseq, seed_ranges.begin(), seed_ranges.end(),
-			 [&almanac, &mtx, &min_loc](const auto& range)
-	{
-		uint64_t range_min_loc = numeric_limits<uint64_t>::max();
+	atomic<uint64_t> min_loc = numeric_limits<uint64_t>::max();
+	mutex mtx;
 
-		for (auto seed : views::iota(range.front(), range.front() + range.back())) {
-			const auto loc = FindLocation(almanac, seed);
-			range_min_loc = min(range_min_loc, loc);
-		}
+	// Seed ranges are too big and would need to be searched entirely.
+	// Instead, reverse search (location -> seed), so we can abort on the first hit
+	// Search in steps of 20 million, processing chunks of 50k in parallel.
+	// Abort once we are above the current min location
+	// Brings it down from 45s (parallel search over seed ranges) to ~75ms
 
-		lock_guard lk(mtx);
-		min_loc = min(min_loc, range_min_loc);
-	});
+	auto search_from = 0;
+	while (search_from < min_loc) {
+		const auto ranges = views::iota(search_from, search_from + 20'000'000) | views::chunk(50'000);
+		for_each(execution::par_unseq, ranges.begin(), ranges.end(), [&almanac, &min_loc, &mtx](const auto& range) {
+			for (auto loc : range) {
+				if (loc >= min_loc) return;
 
-	println("Search: {:%T}", chrono::high_resolution_clock::now() - start);
-	println("Day 5b: {}", min_loc);
+				const auto seed = FindSeed(almanac, loc);
+				if (HaveSeed(almanac, seed)) {
+					lock_guard lk(mtx);
+					min_loc = min<uint64_t>(min_loc, loc);
+					return;
+				}
+			}
+		});
+		search_from += 20'000'000;
+	}
+
+	println("Day 5b: {} ({:%T})", min_loc.load(), chrono::high_resolution_clock::now() - start);
 }
