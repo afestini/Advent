@@ -42,5 +42,8 @@
     <ClCompile Include="day8.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="day9.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
