@@ -60,6 +60,7 @@ public:
 			for (auto pos = i + stride; pos < tiles.length(); pos += stride) {
 				if ((tiles[pos] & 0x80) == 0) continue; // Not part of the loop
 
+#ifdef ORIGINAL
 				const auto tile = static_cast<char>(tiles[pos] & 0x7F);
 				if (tile == '|') continue; // Parallel, don't care
 
@@ -72,6 +73,10 @@ public:
 				else if (tile == '7' || tile == 'F') { // Top corner, not an intersection yet, store for later
 					start_corner = tile;
 				}
+#else
+				// Had to watch William Y. Feng to realize the corners could be handled much easier
+				if ("-7J"s.contains(tiles[pos] & 0x7F)) is_inside = !is_inside;
+#endif
 			}
 
 			// Odd number of intersections means we started in side the polyg... pipe loop
@@ -85,10 +90,10 @@ private:
 		vector<int64_t> start_dirs;
 		for (auto dir : {-1LL, 1LL, -stride, stride}) {
 			// Check out of bounds and if the pipe connects
-			if (dir == -1      && ((start % stride) == 0          || !"-LF"s.contains(tiles[start + dir]))) continue;
-			if (dir ==  1      && ((start % stride) + 1 >= stride || !"-J7"s.contains(tiles[start + dir]))) continue;
-			if (dir == -stride && (start < stride                 || !"|7F"s.contains(tiles[start + dir]))) continue;
-			if (dir ==  stride && (start + dir >= ssize(tiles)    || !"|JL"s.contains(tiles[start + dir]))) continue;
+			if (dir == -1      && ( start      % stride == 0   || !"-LF"s.contains(tiles[start + dir]))) continue;
+			if (dir ==  1      && ((start + 1) % stride == 0   || !"-J7"s.contains(tiles[start + dir]))) continue;
+			if (dir == -stride && (start < stride              || !"|7F"s.contains(tiles[start + dir]))) continue;
+			if (dir ==  stride && (start + dir >= ssize(tiles) || !"|JL"s.contains(tiles[start + dir]))) continue;
 			start_dirs.push_back(dir);
 		}
 
@@ -115,7 +120,7 @@ private:
 	void FollowPipe() {
 		do {
 			const auto dirs = pipe_connections[tiles[position]];
-			const bool take_first = (position + dirs.first != last_pos);
+			const bool take_first = (position + dirs.first) != last_pos;
 			Step(take_first ? dirs.first : dirs.second);
 		} while (position != start);
 	}
