@@ -62,10 +62,20 @@ static int64_t ExpandAndMeasure(int64_t expansion) {
 
 
 export void day11_1() {
-	println("Day 11a: {}", ExpandAndMeasure(2));
+	const auto start = chrono::high_resolution_clock::now();
+
+	const auto sum = ExpandAndMeasure(2);
+
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 11a: {} ({})", sum, duration);
 }
 
 
 export void day11_2() {
-	println("Day 11b: {}", ExpandAndMeasure(1'000'000));
+	const auto start = chrono::high_resolution_clock::now();
+
+	const auto sum = ExpandAndMeasure(1'000'000);
+
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 11b: {} ({})", sum, duration);
 }

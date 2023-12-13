@@ -47,15 +47,20 @@ static uint64_t FollowInstructions(const Map& map, string pos, const Cond& cond)
 
 
 export void day8_1() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	const auto map = ParseMap();
 
 	const auto steps = FollowInstructions(map, "AAA", bind_front(equal_to(), "ZZZ"));
 
-	println("Day 8a: {}", steps);
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 8a: {} ({})", steps, duration);
 }
 
 
 export void day8_2() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	const auto map = ParseMap();
 
 	const auto ends_in = [](string_view s, char ch) { return s.ends_with(ch); };
@@ -68,5 +73,7 @@ export void day8_2() {
 	}
 
 	const auto LCM = ranges::fold_left(steps, 1ULL, lcm<uint64_t, uint64_t>);
-	println("Day 8b: {}", LCM);
+
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 8b: {} ({})", LCM, duration);
 }

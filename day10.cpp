@@ -136,13 +136,22 @@ private:
 
 
 export void day10_1() {
-	println("Day 10a: {}", PipeTracker().Search());
+	const auto start = chrono::high_resolution_clock::now();
+
+	const auto steps = PipeTracker().Search();
+
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 10a: {} ({})", steps, duration);
 }
 
 
 export void day10_2() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	PipeTracker tracker;
 	tracker.Search();
+	const auto sum = tracker.CountEnclosed();
 
-	println("Day 10b: {}", tracker.CountEnclosed());
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 10b: {} ({})", sum, duration);
 }

@@ -90,10 +90,20 @@ static uint64_t EvaluateHands(bool jokers) {
 
 
 export void day7_1() {
-	println("Day 7a: {}", EvaluateHands(false));
+	const auto start = chrono::high_resolution_clock::now();
+
+	const auto result = EvaluateHands(false);
+
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 7a: {} ({})", result, duration);
 }
 
 
 export void day7_2() {
-	println("Day 7b: {}", EvaluateHands(true));
+	const auto start = chrono::high_resolution_clock::now();
+
+	const auto result = EvaluateHands(true);
+
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 7b: {} ({})", result, duration);
 }

@@ -47,12 +47,20 @@ int64_t Predict(const Func& predict_func) {
 
 
 export void day9_1() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	const auto sum = Predict([](const auto& vals, auto prediction) {return vals.back() + prediction;});
-	println("Day 9a: {}", sum);
+
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 9a: {} ({})", sum, duration);
 }
 
 
 export void day9_2() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	const auto sum = Predict([](const auto& vals, auto prediction) {return vals.front() - prediction;});
-	println("Day 9b: {}", sum);
+
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 9b: {} ({})", sum, duration);
 }

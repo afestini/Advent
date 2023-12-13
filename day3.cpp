@@ -63,6 +63,8 @@ static int GetPartNumber(const vector<string>& schematic, int64_t line_nr, Numbe
 
 
 export void day3_1() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	const auto schematic = ReadSchematic();
 
 	int sum = 0;
@@ -78,7 +80,8 @@ export void day3_1() {
 		}
 	}
 
-	println("Day 3a: {}", sum);
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 3a: {} ({})", sum, duration);
 }
 
 
@@ -105,6 +108,8 @@ static void UpdateGears(const vector<string>& schematic, int64_t line_nr, Number
 
 
 export void day3_2() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	const auto schematic = ReadSchematic();
 
 	for (auto [line_nr, line] : schematic | views::enumerate) {
@@ -126,5 +131,6 @@ export void day3_2() {
 		}
 	}
 
-	println("Day 3b: {}", sum);
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 3b: {} ({})", sum, duration);
 }

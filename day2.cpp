@@ -63,6 +63,8 @@ vector<Game> parse_games() {
 
 
 export void day2_1() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	const auto games = parse_games();
 
 	int sum = 0;
@@ -70,13 +72,17 @@ export void day2_1() {
 		if (ranges::all_of(game.sets, set_is_possible))
 			sum += game.id;
 	}
-	println("Day 2a: {}", sum);
+
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 2a: {} ({})", sum, duration);
 }
 
 
 
 
 export void day2_2() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	const auto games = parse_games();
 
 	int sum = 0;
@@ -89,5 +95,7 @@ export void day2_2() {
 		}
 		sum += maxes.r * maxes.g * maxes.b;
 	}
-	println("Day 2b: {}", sum);
+	
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 2b: {} ({})", sum, duration);
 }

@@ -46,6 +46,8 @@ static vector<Card> ParseCards() {
 
 
 export void day4_1() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	const auto cards = ParseCards();
 
 	int sum = 0;
@@ -57,11 +59,14 @@ export void day4_1() {
 		}
 	}
 
-	println("Day 4a: {}", sum);
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 4a: {} ({})", sum, duration);
 }
 
 
 export void day4_2() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	auto cards = ParseCards();
 
 	int sum = 0;
@@ -75,5 +80,6 @@ export void day4_2() {
 		sum += card.count;
 	}
 
-	println("Day 4b: {}", sum);
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 4b: {} ({})", sum, duration);
 }

@@ -84,6 +84,8 @@ static bool HaveSeed(const Almanac& almanac, uint64_t seed) {
 
 
 export void day5_1() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	const auto almanac = ParseTables();
 
 	uint64_t min_loc = numeric_limits<uint64_t>::max();
@@ -92,15 +94,17 @@ export void day5_1() {
 		const auto loc = FindLocation(almanac, seed);
 		min_loc = min(min_loc, loc);
 	}
-	println("Day 5a: {}", min_loc);
+	
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 5a: {} ({})", min_loc, duration);
 }
 
 
 
 export void day5_2() {
-	const auto almanac = ParseTables();
-
 	const auto start = chrono::high_resolution_clock::now();
+
+	const auto almanac = ParseTables();
 
 	atomic<uint64_t> min_loc = numeric_limits<uint64_t>::max();
 	mutex mtx;
@@ -129,5 +133,6 @@ export void day5_2() {
 		search_from += 20'000'000;
 	}
 
-	println("Day 5b: {} ({:%T})", min_loc.load(), chrono::high_resolution_clock::now() - start);
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 5b: {} ({})", min_loc.load(), duration);
 }

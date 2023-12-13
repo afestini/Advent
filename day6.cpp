@@ -48,6 +48,8 @@ pair<int, int> SolveQuadratic(uint64_t time, uint64_t dist) {
  
 
 export void day6_1() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	const auto races = ParseRaces();
 
 	int product = 1;
@@ -56,11 +58,14 @@ export void day6_1() {
 		product *= to - from + 1;
 	}
 
-	println("Day 6a: {}", product);
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 6a: {} ({})", product, duration);
 }
 
 
 export void day6_2() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	const auto races = ParseRaces();
 
 	// Very lazy for the sake of reuse and shortness, lots of silly back and forth conversion
@@ -72,5 +77,7 @@ export void day6_2() {
 	}
 
 	const auto [from, to] = SolveQuadratic(stoull(time), stoull(dist));
-	println("Day 6b: {}", to - from + 1);
+
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 6b: {} ({})", to - from + 1, duration);
 }

@@ -6,6 +6,8 @@ using namespace std;
 
 
 export void day1_1() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	ifstream input("day1.txt");
 	if (!input) return;
 
@@ -18,7 +20,9 @@ export void day1_1() {
 			sum += (*first_it - '0') * 10 + last;
 		}
 	}
-	println("Day 1a: {}", sum);
+
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 1a: {} ({})", sum, duration);
 }
 
 
@@ -40,6 +44,8 @@ static int try_get_digit(string_view s, const RangeAdapter& adapter) {
 }
 
 export void day1_2() {
+	const auto start = chrono::high_resolution_clock::now();
+
 	ifstream input("day1.txt");
 	if (!input) return;
 
@@ -51,5 +57,7 @@ export void day1_2() {
 		const int last = try_get_digit(line, views::reverse);
 		sum += first * 10 + last;
 	}
-	println("Day 1b: {}", sum);
+
+	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	println("Day 1b: {} ({})", sum, duration);
 }
