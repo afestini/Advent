@@ -10,6 +10,7 @@ import day9;
 import day10;
 import day11;
 import day12;
+import day13;
 
 
 int main() {
@@ -48,6 +49,9 @@ int main() {
 
 	day12_1();
 	day12_2();
+
+	day13_1();
+	day13_2();
 
 	return 0;
 }
