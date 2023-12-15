@@ -6,80 +6,56 @@ using namespace std;
 
 
 struct RangeMap {
-	string name; // Just for debugging
 	struct Entry {
-		uint64_t dst = 0;
-		uint64_t src = 0;
-		uint64_t sz = 0;
+		int64_t beg = 0;
+		int64_t end = 0;
+		int64_t delta = 0;
 	};
 	vector<Entry> entries;
+	int64_t min_beg = numeric_limits<uint32_t>::max();
+	int64_t max_end = 0;
 
-	uint64_t LookUp(uint64_t x) const {
-		const auto it = ranges::find_if(entries, [x](const auto& e) { return x >= e.src && x < e.src + e.sz; });
-		return (it != entries.end()) ? (it->dst + (x - it->src)) : x;
-	}
-
-	uint64_t ReverseLookUp(uint64_t x) const {
-		const auto it = ranges::find_if(entries, [x](const auto& e) { return x >= e.dst && x < e.dst + e.sz; });
-		return (it != entries.end()) ? (it->src + (x - it->dst)) : x;
+	uint64_t LookUp(int64_t x) const {
+		const auto it = ranges::find_if(entries, [x](const auto& e) { return x >= e.beg && x < e.end; });
+		return x += (it == entries.end()) ? 0 : it->delta;
 	}
 };
 
 struct Almanac {
-	vector<uint64_t> seeds;
+	vector<int64_t> seeds;
 	vector<RangeMap> tables;
 };
 
 
 static Almanac ParseTables() {
 	ifstream input("day5.txt");
-	if (!input) return {};
 
 	Almanac almanac;
+
 	string line;
-	uint64_t seed{};
-	RangeMap* current_map = nullptr;
 	while (getline(input, line)) {
 		if (line.starts_with("seeds:")) {
 			ispanstream str(string_view(line).substr(6));
+			int64_t seed{};
 			while (str >> seed) almanac.seeds.emplace_back(seed);
 		}
 		else if (line.ends_with("map:")) {
-			current_map = &almanac.tables.emplace_back(line);
+			almanac.tables.emplace_back();
 		}
-		else if (!line.empty() && current_map) {
-			auto& entry = current_map->entries.emplace_back();
-			ispanstream(string_view(line)) >> entry.dst >> entry.src >> entry.sz;
+		else if (!line.empty() && !almanac.tables.empty()) {
+			int64_t dst, src, sz;
+			ispanstream(string_view(line)) >> dst >> src >> sz;
+			almanac.tables.back().entries.emplace_back(src, src + sz, dst - src);
+			almanac.tables.back().min_beg = min(almanac.tables.back().min_beg, src);
+			almanac.tables.back().max_end = max(almanac.tables.back().max_end, src + sz);
 		}
 	}
 	return almanac;
 }
 
 
-static uint64_t FindLocation(const Almanac& almanac, uint64_t seed) {
-	uint64_t search = seed;
-	for (const auto& table : almanac.tables) {
-		search = table.LookUp(search);
-	}
-	return search;
-}
-
-
-static uint64_t FindSeed(const Almanac& almanac, uint64_t loc) {
-	uint64_t search = loc;
-	for (const auto& table : almanac.tables | views::reverse) {
-		search = table.ReverseLookUp(search);
-	}
-	return search;
-}
-
-
-static bool HaveSeed(const Almanac& almanac, uint64_t seed) {
-	const auto seed_ranges = almanac.seeds | views::chunk(2);
-	for (const auto& range : seed_ranges) {
-		if (seed >= range.front() && seed < range.front() + range.back()) return true;
-	}
-	return false;
+static uint64_t FindLocation(const Almanac& almanac, int64_t seed) {
+	return ranges::fold_left(almanac.tables, seed, [](int64_t seed, const RangeMap& map) {return map.LookUp(seed);});
 }
 
 
@@ -87,52 +63,58 @@ export void day5_1() {
 	const auto start = chrono::high_resolution_clock::now();
 
 	const auto almanac = ParseTables();
-
-	uint64_t min_loc = numeric_limits<uint64_t>::max();
-
-	for (auto seed : almanac.seeds) {
-		const auto loc = FindLocation(almanac, seed);
-		min_loc = min(min_loc, loc);
-	}
+	const uint64_t min_loc = ranges::min(almanac.seeds | views::transform(bind_front(FindLocation, almanac)));
 	
 	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
 	println("Day 5a: {} ({})", min_loc, duration);
 }
 
 
+void SplitMap(RangeMap& from, const RangeMap& to) {
+	// Use index, iterators get invalidated when adding entries
+	for (size_t i = 0; i < from.entries.size(); ++i) {
+		auto& src = from.entries[i];
+		for (auto& dst : to.entries) {
+			const auto split = dst.end - src.delta;
+			if (split > src.beg && split < src.end) {
+				from.entries.emplace_back(split, src.end, src.delta);
+				src.end = split;
+			}
+		}
+	}
+	ranges::sort(from.entries, {}, &RangeMap::Entry::beg);
+}
+
 
 export void day5_2() {
 	const auto start = chrono::high_resolution_clock::now();
 
-	const auto almanac = ParseTables();
+	auto almanac = ParseTables();
 
-	atomic<uint64_t> min_loc = numeric_limits<uint64_t>::max();
-	mutex mtx;
-
-	// Seed ranges are too big and would need to be searched entirely.
-	// Instead, reverse search (location -> seed), so we can abort on the first hit
-	// Search in steps of 20 million, processing chunks of 50k in parallel.
-	// Abort once we are above the current min location
-	// Brings it down from 45s (parallel search over seed ranges) to ~75ms
-
-	auto search_from = 0;
-	while (search_from < min_loc) {
-		const auto ranges = views::iota(search_from, search_from + 20'000'000) | views::chunk(50'000);
-		for_each(execution::par_unseq, ranges.begin(), ranges.end(), [&almanac, &min_loc, &mtx](const auto& range) {
-			for (auto loc : range) {
-				if (loc >= min_loc) return;
-
-				const auto seed = FindSeed(almanac, loc);
-				if (HaveSeed(almanac, seed)) {
-					lock_guard lk(mtx);
-					min_loc = min<uint64_t>(min_loc, loc);
-					return;
-				}
-			}
-		});
-		search_from += 20'000'000;
+	RangeMap seed_ranges;
+	for (size_t i = 0; i < almanac.seeds.size(); i += 2) {
+		seed_ranges.entries.emplace_back(almanac.seeds[i], almanac.seeds[i] + almanac.seeds[i + 1], 0);
 	}
 
+	// Fill possible gaps (0 - x; y - max)
+	for (auto& table : almanac.tables) {
+		if (table.min_beg > 0)
+			table.entries.emplace_back(0, table.min_beg, 0);
+
+		if (table.max_end < numeric_limits<uint32_t>::max())
+			table.entries.emplace_back(table.max_end, numeric_limits<uint32_t>::max(), 0);
+
+		ranges::sort(table.entries, {}, &RangeMap::Entry::beg);
+	}
+
+	for (const auto& in_out : almanac.tables | views::reverse | views::slide(2))
+		SplitMap(in_out.back(), in_out.front());
+
+	SplitMap(seed_ranges, almanac.tables[0]);
+
+	const uint64_t min_loc = ranges::min(seed_ranges.entries | views::transform(
+						[&almanac](const auto& r){return FindLocation(almanac, r.beg);}));
+
 	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
-	println("Day 5b: {} ({})", min_loc.load(), duration);
+	println("Day 5b: {} ({})", min_loc, duration);
 }

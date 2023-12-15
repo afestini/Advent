@@ -50,14 +50,20 @@ public:
 	uint64_t CountEnclosed() {
 		uint64_t count = 0;
 
-		for (size_t i = 0; i < tiles.length(); ++i) {
+		// Search bottom up and cache results
+		vector<int8_t> in_out(tiles.size());
+
+		for (auto i = ssize(tiles) - 1; i >= 0; --i) {
 			if ((tiles[i] & 0x80) || tiles[i] == '\n') continue;
 
 			// We could check the shortest distance, but only checking down excludes a lot of cases.
 			// We handle moving on top of an edge by remembering if the corner started from the left or right
 			bool is_inside = false;
 			char start_corner = 0;
-			for (auto pos = i + stride; pos < tiles.length(); pos += stride) {
+			for (auto pos = i + stride; pos < ssize(tiles); pos += stride) {
+				if (in_out[pos] == 1) { is_inside = !is_inside; break; }
+				if (in_out[pos] == -1) break;
+
 				if ((tiles[pos] & 0x80) == 0) continue; // Not part of the loop
 
 #ifdef ORIGINAL
@@ -80,6 +86,7 @@ public:
 			}
 
 			// Odd number of intersections means we started in side the polyg... pipe loop
+			in_out[i] = is_inside ? 1 : -1;
 			if (is_inside) ++count;
 		}
 		return count;

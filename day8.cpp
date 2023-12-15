@@ -68,9 +68,10 @@ export void day8_2() {
 	auto nodes = map.nodes | views::keys | views::filter(bind_back(ends_in, 'A')) | ranges::to<vector>();
 	vector<uint64_t> steps(nodes.size());
 
-	for (auto [i, node] : nodes | views::enumerate) {
+	for_each(execution::par_unseq, nodes.begin(), nodes.end(), [&](const auto& node) {
+		const auto i = &node - nodes.data();
 		steps[i] = FollowInstructions(map, node, bind_back(ends_in, 'Z'));
-	}
+	});
 
 	const auto LCM = ranges::fold_left(steps, 1ULL, lcm<uint64_t, uint64_t>);
 

@@ -37,15 +37,20 @@ struct Hand {
 
 
 static vector<Hand> ParseHands() {
-	ifstream input("day7.txt");
-	if (!input) return {};
+	ifstream input("day7.txt", ios::binary);
 
 	vector<Hand> hands;
-	string line;
-	while (getline(input, line)) {
+
+	string data;
+	data.resize(filesystem::file_size("day7.txt"));
+	input.read(data.data(), data.size());
+
+	ispanstream str(data);
+	do {
 		auto& hand = hands.emplace_back();
-		ispanstream(string_view(line)) >> hand.cards >> hand.bid;
-	}
+		str >> hand.cards >> hand.bid;
+	} while (str);
+
 	return hands;
 }
 
@@ -78,7 +83,7 @@ static uint64_t EvaluateHands(bool jokers) {
 	auto hands = ParseHands();
 
 	for_each(execution::par_unseq, hands.begin(), hands.end(), &DetermineType);
-	ranges::sort(hands, less());
+	sort(execution::par_unseq, hands.begin(), hands.end(), less());
 
 	uint64_t sum = 0;
 	for (const auto& [idx, hand] : hands | views::enumerate) {
