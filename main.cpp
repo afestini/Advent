@@ -14,6 +14,7 @@ import day13;
 import day14;
 import day15;
 import day16;
+import day17;
 
 
 int main() {
@@ -51,19 +52,22 @@ int main() {
 	day11_2();
 
 	day12_1();
-	day12_2();
+	//day12_2();
 
 	day13_1();
 	day13_2();
 
 	day14_1();
-	day14_2();
+	//day14_2();
 
 	day15_1();
 	day15_2();
 
 	day16_1();
 	day16_2();
+
+	day17_1();
+	day17_2();
 
 	return 0;
 }
