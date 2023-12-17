@@ -24,8 +24,9 @@ struct Step {
 	int total_loss = 0;
 	int8_t dir_steps = 0;
 	int8_t dir = 0;
+	int estimate = 0;
 
-	auto operator<=>(Step other) const { return other.total_loss <=> total_loss; }
+	auto operator<=>(const Step& other) const { return other.estimate <=> estimate; }
 };
 
 
@@ -40,8 +41,10 @@ static constexpr array dirs{Dirs{-1, 0, 0, 1}, Dirs{1, 0, 1, 0}, Dirs{0, -1, 2, 
 
 template<int min_steps, int max_steps>
 static int Search(const vector<string>& input) {
-	const auto width = ssize(input[0]);
-	const auto height = ssize(input);
+	const auto width = static_cast<int>(ssize(input[0]));
+	const auto height = static_cast<int>(ssize(input));
+	const auto dst_x = width - 1;
+	const auto dst_y = height - 1;
 
 	vector<array<array<bool, max_steps + 1>, 4>> history(width * height);
 
@@ -52,7 +55,7 @@ static int Search(const vector<string>& input) {
 		auto step = to_check.top();
 		to_check.pop();
 
-		if (step.x + 1 == width && step.y + 1 == height && step.dir_steps >= min_steps)
+		if (step.x == dst_x && step.y == dst_y && step.dir_steps >= min_steps)
 			return step.total_loss;
 
 		for (auto d : dirs) {
@@ -61,16 +64,16 @@ static int Search(const vector<string>& input) {
 
 			const auto x = step.x + d.dx;
 			const auto y = step.y + d.dy;
-			if (x >= 0 && x < width && y >= 0 && y < height && d.rev != step.dir) {
-				const auto steps = static_cast<int8_t>((step.dir == d.id) ? step.dir_steps + 1 : 1);
-				const auto idx = y * width + x;
+			if (x < 0 || x >= width || y < 0 || y >= height || d.rev == step.dir) continue;
+			
+			const auto steps = static_cast<int8_t>((step.dir == d.id) ? step.dir_steps + 1 : 1);
+			const auto idx = y * width + x;
+			if (history[idx][d.id][steps]) continue;
 
-				if (!history[idx][d.id][steps]) {
-					const auto loss = step.total_loss + input[y][x];
-					to_check.emplace(x, y, loss, steps, d.id);
-					history[idx][d.id][steps] = true;
-				}
-			}
+			const auto loss = step.total_loss + input[y][x];
+			const auto estimate = static_cast<int>((dst_x - y) + (dst_x - x)) + height;
+			to_check.emplace(x, y, loss, steps, d.id, loss + estimate);
+			history[idx][d.id][steps] = true;
 		}
 	}
 	return -1;
