@@ -16,21 +16,22 @@ static vector<string> ReadInput() {
 	return data;
 }
 
+namespace {
+	struct Vec {
+		int8_t x; int8_t y;
 
-struct Vec {
-	int8_t x; int8_t y;
+		auto operator<=>(const Vec& a) const = default;
+		Vec& operator+=(const Vec& v) { x += v.x; y += v.y; return *this; }
+		Vec operator+(const Vec& v) const { return {x + v.x, y + v.y}; }
+		Vec operator-(const Vec& v) const { return {x - v.x, y - v.y}; }
+		Vec operator-() const { return {-x, -y}; }
+	};
 
-	auto operator<=>(const Vec& a) const = default;
-	Vec& operator+=(const Vec& v) { x += v.x; y += v.y; return *this; }
-	Vec operator+(const Vec& v) const { return {x + v.x, y + v.y}; }
-	Vec operator-(const Vec& v) const { return {x - v.x, y - v.y}; }
-	Vec operator-() const { return {-x, -y}; }
-};
-
-struct Ray {
-	Vec pos{0, 0};
-	Vec dir{1, 0};
-};
+	struct Ray {
+		Vec pos{0, 0};
+		Vec dir{1, 0};
+	};
+}
 
 static int64_t LightItUp(const vector<string>& input, Ray ray) {
 	const auto height = static_cast<int>(input.size());
