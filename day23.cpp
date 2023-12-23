@@ -30,21 +30,12 @@ namespace {
 
 static const array<Vec, 4> dirs = {{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}};
 
-static unordered_map<char, Vec> slopes = {{'>', {1, 0}}, {'<', {-1, 0}}, {'^', {0, -1}}, {'v', {0, 1}}};
-
 
 struct Node {
 	Vec pos;
 	struct EdgeInfo { Vec dir; int steps; };
 	mutable unordered_map<const Node*, EdgeInfo> edges;
-
-	auto operator==(const Node& other) const { return pos == other.pos; }
 };
-
-struct NodeHash {
-	uint64_t operator()(const Node& n) const { return uint64_t(n.pos.x) << 32 | n.pos.y; }
-};
-
 using NodeSet = vector<Node>;
 
 
@@ -66,6 +57,8 @@ static auto GetNodes(span<const string> input) {
 
 
 static void FollowPath(span<const string> input, const NodeSet& nodes, const Node& from, Vec start_dir, bool slopes_block) {
+	static unordered_map<char, Vec> slopes = {{'>', {1, 0}}, {'<', {-1, 0}}, {'^', {0, -1}}, {'v', {0, 1}}};
+
 	Vec pos = from.pos;
 	Vec dir = start_dir;
 	int steps = 0;
@@ -89,13 +82,11 @@ static void FollowPath(span<const string> input, const NodeSet& nodes, const Nod
 		}
 
 		for (auto test_dir : dirs) {
-			if (test_dir == -dir) continue;
-
 			const Vec test = pos + test_dir;
-			if (input[test.y][test.x] == '#') continue;
-
-			dir = test_dir;
-			break;
+			if (test_dir != -dir && input[test.y][test.x] != '#') {
+				dir = test_dir;
+				break;
+			}
 		}
 	}
 }
@@ -114,19 +105,19 @@ static void ConnectEdges(span<const string> input, const NodeSet& nodes, bool sl
 }
 
 
-static int SearchDF(const Node& node, const Node& goal, int steps, vector<const Node*>& visited) {
+static int SearchDF(const Node& node, const Node& goal, int steps, vector<int8_t>& visited, size_t stride) {
 	if (&node == &goal) return steps;
 
-	visited.emplace_back(&node);
+	visited[node.pos.y * stride + node.pos.x] = true;
 
 	int max_steps = 0;
 	for (const auto& [to, edge_info] : node.edges) {
-		if (!ranges::contains(visited, to)) {
-			max_steps = max(max_steps, SearchDF(*to, goal, steps + edge_info.steps, visited));
+		if (!visited[to->pos.y * stride + to->pos.x]) {
+			max_steps = max(max_steps, SearchDF(*to, goal, steps + edge_info.steps, visited, stride));
 		}
 	}
 
-	visited.pop_back();
+	visited[node.pos.y * stride + node.pos.x] = false;
 	return max_steps;
 }
 
@@ -138,8 +129,8 @@ static int FindLongestPath(span<const string> input, bool slopes_block) {
 
 	ConnectEdges(input, nodes, slopes_block);
 
-	vector<const Node*> visited;
-	return SearchDF(start, goal, 0, visited);
+	vector<int8_t> visited(input.size() * input[0].size());
+	return SearchDF(start, goal, 0, visited, input[0].size());
 }
 
 
