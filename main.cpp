@@ -20,6 +20,7 @@ import day19;
 import day20;
 import day21;
 import day22;
+import day23;
 
 
 int main() {
@@ -88,6 +89,9 @@ int main() {
 
 	day22_1();
 	day22_2();
+
+	day23_1();
+	day23_2();
 
 	return 0;
 }
