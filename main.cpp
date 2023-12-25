@@ -22,6 +22,7 @@ import day21;
 import day22;
 import day23;
 import day24;
+import day25;
 
 
 int main() {
@@ -59,13 +60,13 @@ int main() {
 	day11_2();
 
 	day12_1();
-	//day12_2();
+	day12_2();
 
 	day13_1();
 	day13_2();
 
 	day14_1();
-	//day14_2();
+	day14_2();
 
 	day15_1();
 	day15_2();
@@ -74,7 +75,7 @@ int main() {
 	day16_2();
 
 	day17_1();
-	//day17_2();
+	day17_2();
 
 	day18_1();
 	day18_2();
@@ -92,10 +93,12 @@ int main() {
 	day22_2();
 
 	day23_1();
-	//day23_2();
+	day23_2();
 
 	day24_1();
 	day24_2();
+
+	day25();
 
 	return 0;
 }
