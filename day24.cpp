@@ -80,49 +80,59 @@ export void day24_1() {
 }
 
 
+static auto Plane(const Hail& s1, const Hail& s2) {
+	const auto dp = s1.pos - s2.pos;
+	const auto dv = s1.vel - s2.vel;
+	const auto normal = s1.vel.Cross(s2.vel);
+	const auto N = dp.Cross(dv);
+	const auto P = dp.Dot(normal);
+	return pair{N, P};
+}
+
+
+template<typename T>
+static Vec3<T> Lin(T r, Vec3<T> a, T s, Vec3<T> b, T t, Vec3<T> c) {
+	const T x = r * a.x + s * b.x + t * c.x;
+	const T y = r * a.y + s * b.y + t * c.y;
+	const T z = r * a.z + s * b.z + t * c.z;
+	return Vec3(x, y, z);
+}
+
+
 export void day24_2() {
+	// Nicely stolen from Quantris.. now to understand and clean it up
+	// Skipped the tests, since any parallel or co-planar lines would have made it so much easier
 	const auto start_time = chrono::high_resolution_clock::now();
 
 	const auto hailstones = ReadInput();
 
-	Vec3<double> point_on_plane;
-	Vec3<double> normal;
+	const auto& s1 = hailstones[0];
+	const auto& s2 = hailstones[1];
+	const auto& s3 = hailstones[2];
 
-	for (auto [i, a] : hailstones | views::enumerate) {
-		for (const auto& b : ranges::subrange(hailstones.begin() + i + 1, hailstones.end())) {
-			if (a.vel.Cross(b.vel).Dot(b.pos - a.pos) == 0) {
-				println("Coplanar");
+	const auto p1 = Plane(s1, s2);
+	const auto p2 = Plane(s1, s3);
+	const auto p3 = Plane(s2, s3);
 
-				if (a.vel.Cross(b.vel).LenSq() == 0) println("Parallel");
+	auto w = Lin(p1.second, p2.first.Cross(p3.first),
+					   p2.second, p3.first.Cross(p1.first),
+					   p3.second, p1.first.Cross(p2.first));
 
-				point_on_plane = a.pos;
-				normal = a.vel.Cross(b.pos - a.pos).Norm();
-				println("Normal: {} / {} / {}", normal.x, normal.y, normal.z);
-			}
-		}
-	}
+	const auto t = p1.first.Dot(p2.first.Cross(p3.first));
+	w = Vec3(round(w.x / t), round(w.y / t), round(w.z / t));
 
-	struct Intersection {
-		Vec3<double> pos;
-		double t;
-	};
+	const auto w1 = s1.vel - w;
+	const auto w2 = s2.vel - w;
+	const auto ww = w1.Cross(w2);
 
-	vector<Intersection> intersections;
+	const auto E = ww.Dot(s2.pos.Cross(w2));
+	const auto F = ww.Dot(s1.pos.Cross(w1));
+	const auto G = s1.pos.Dot(ww);
+	const auto S = ww.LenSq();
 
-	for (const auto& stone : hailstones) {
-		const auto dist = (point_on_plane - stone.pos).Dot(normal);
-		const auto t = dist / stone.vel.Dot(normal);
-
-		if (isnan(t)) continue; // Skip the co-planar lines
-
-		intersections.emplace_back(stone.pos + t * stone.vel, t);
-	}
-
-	ranges::sort(intersections, {}, &Intersection::t);
-
-	const auto velocity = 1.0 / (intersections[1].t - intersections[0].t) * (intersections[1].pos - intersections[0].pos);
-	const auto position = intersections[0].pos - intersections[0].t * velocity;
+	const auto rock = Lin(E, w1, -F, w2, G, ww);
+	const auto solution = (rock.x + rock.y + rock.z) / S;
 
 	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start_time);
-	println("Day 24b: {} ({})", position.x + position.y + position.z, duration);
+	println("Day 24b: {} ({})", solution, duration);
 }
