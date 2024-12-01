@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{986f8c7c-3404-4120-9098-be4fd391e0d3}</ProjectGuid>
-    <RootNamespace>advent</RootNamespace>
+    <ProjectGuid>{dac77361-4df6-4186-96b9-84c115a9d9a3}</ProjectGuid>
+    <RootNamespace>My2024</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -102,10 +102,11 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -118,10 +119,11 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,30 +134,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="day1.cpp" />
-    <ClCompile Include="day10.cpp" />
-    <ClCompile Include="day11.cpp" />
-    <ClCompile Include="day12.cpp" />
-    <ClCompile Include="day13.cpp" />
-    <ClCompile Include="day14.cpp" />
-    <ClCompile Include="day15.cpp" />
-    <ClCompile Include="day16.cpp" />
-    <ClCompile Include="day17.cpp" />
-    <ClCompile Include="day18.cpp" />
-    <ClCompile Include="day19.cpp" />
-    <ClCompile Include="day2.cpp" />
-    <ClCompile Include="day20.cpp" />
-    <ClCompile Include="day21.cpp" />
-    <ClCompile Include="day22.cpp" />
-    <ClCompile Include="day23.cpp" />
-    <ClCompile Include="day24.cpp" />
-    <ClCompile Include="day25.cpp" />
-    <ClCompile Include="day3.cpp" />
-    <ClCompile Include="day4.cpp" />
-    <ClCompile Include="day5.cpp" />
-    <ClCompile Include="day6.cpp" />
-    <ClCompile Include="day7.cpp" />
-    <ClCompile Include="day8.cpp" />
-    <ClCompile Include="day9.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

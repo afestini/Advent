@@ -28,6 +28,7 @@ namespace {
 	struct Hail { Vec3<double> pos, vel; };
 }
 
+
 static vector<Hail> ReadInput() {
 	ifstream input("day24.txt");
 
@@ -82,20 +83,9 @@ export void day24_1() {
 
 static auto Plane(const Hail& s1, const Hail& s2) {
 	const auto dp = s1.pos - s2.pos;
-	const auto dv = s1.vel - s2.vel;
-	const auto normal = s1.vel.Cross(s2.vel);
-	const auto N = dp.Cross(dv);
-	const auto P = dp.Dot(normal);
+	const auto N = dp.Cross(s1.vel - s2.vel);
+	const auto P = dp.Dot(s1.vel.Cross(s2.vel));
 	return pair{N, P};
-}
-
-
-template<typename T>
-static Vec3<T> Lin(T r, Vec3<T> a, T s, Vec3<T> b, T t, Vec3<T> c) {
-	const T x = r * a.x + s * b.x + t * c.x;
-	const T y = r * a.y + s * b.y + t * c.y;
-	const T z = r * a.z + s * b.z + t * c.z;
-	return Vec3(x, y, z);
 }
 
 
@@ -110,15 +100,13 @@ export void day24_2() {
 	const auto& s2 = hailstones[1];
 	const auto& s3 = hailstones[2];
 
-	const auto p1 = Plane(s1, s2);
-	const auto p2 = Plane(s1, s3);
-	const auto p3 = Plane(s2, s3);
+	const auto [A, a] = Plane(s1, s2);
+	const auto [B, b] = Plane(s1, s3);
+	const auto [C, c] = Plane(s2, s3);
 
-	auto w = Lin(p1.second, p2.first.Cross(p3.first),
-					   p2.second, p3.first.Cross(p1.first),
-					   p3.second, p1.first.Cross(p2.first));
+	const auto t = A.Dot(B.Cross(C));
 
-	const auto t = p1.first.Dot(p2.first.Cross(p3.first));
+	auto w = (a * B.Cross(C) + b * C.Cross(A) + c * A.Cross(B));
 	w = Vec3(round(w.x / t), round(w.y / t), round(w.z / t));
 
 	const auto w1 = s1.vel - w;
@@ -130,7 +118,7 @@ export void day24_2() {
 	const auto G = s1.pos.Dot(ww);
 	const auto S = ww.LenSq();
 
-	const auto rock = Lin(E, w1, -F, w2, G, ww);
+	const auto rock = E*w1 + -F*w2 + G*ww;
 	const auto solution = (rock.x + rock.y + rock.z) / S;
 
 	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start_time);
