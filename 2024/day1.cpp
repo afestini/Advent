@@ -5,7 +5,7 @@ import std;
 using namespace std;
 
 
-static generator<pair<int, int>> file_input(const string& path) {
+static generator<pair<int, int>> file_input() {
 	ifstream input("day1.txt");
 	while (input) {
 		int left_num = 0;
@@ -22,7 +22,7 @@ export void day1_1() {
 	vector<int> left;
 	vector<int> right;
 
-	for (auto [left_num, right_num] : file_input("day1.txt")) {
+	for (auto [left_num, right_num] : file_input()) {
 		left.emplace_back(left_num);
 		right.emplace_back(right_num);
 	}
@@ -46,7 +46,7 @@ export void day1_2() {
 	vector<int> left;
 	unordered_map<int, uint64_t> counts;
 
-	for (auto [left_num, right_num] : file_input("day1.txt")) {
+	for (auto [left_num, right_num] : file_input()) {
 		left.emplace_back(left_num);
 		++counts[right_num];
 	}
