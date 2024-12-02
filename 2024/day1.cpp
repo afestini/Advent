@@ -7,11 +7,14 @@ using namespace std;
 
 static generator<pair<int, int>> file_input() {
 	ifstream input("day1.txt");
-	while (input) {
-		int left_num = 0;
-		int right_num = 0;
-		if (input >> left_num >> right_num)
-			co_yield {left_num, right_num};
+	string line;
+	while (getline(input, line)) {
+		pair<int, int> p;
+		for (const auto& [idx, num] : views::split(line, "   "sv) | views::enumerate) {
+			int& n = (idx == 0) ? p.first : p.second;
+			from_chars(to_address(num.begin()), to_address(num.end()), n);
+		}
+		co_yield p;
 	}
 }
 
