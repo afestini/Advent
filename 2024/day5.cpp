@@ -4,7 +4,14 @@ import std;
 
 using namespace std;
 
-using Ordering = vector<pair<int, int>>;
+
+struct IntPairHash {
+	size_t operator()(pair<int,int> p) const noexcept {
+		return (size_t)p.first << 32 | p.second;
+	}
+};
+
+using Ordering = unordered_set<pair<int, int>, IntPairHash>;
 using Update = vector<int>;
 
 
@@ -22,10 +29,12 @@ static auto file_input() {
 		}
 
 		if (parse_order) {
-			auto& o = ordering.emplace_back();
+			int a = 0;
+			int b = 0;
 			for (const auto& num : views::split(line, '|')) {
-				from_chars(num.data(), to_address(num.end()), o.first ? o.second : o.first);
+				from_chars(num.data(), to_address(num.end()), a ? b : a);
 			}
+			ordering.emplace(a, b);
 		}
 		else {
 			updates.emplace_back();
@@ -35,7 +44,6 @@ static auto file_input() {
 			}
 		}
 	}
-	ranges::sort(ordering);
 	return pair{move(ordering), move(updates)};
 }
 
@@ -46,7 +54,7 @@ export void day5_1() {
 	const auto [ordering, updates] = file_input();
 
 	const auto is_before = [&ordering](int a, int b) {
-		return ranges::binary_search(ordering, pair {a, b});
+		return ordering.contains(pair{a, b});
 	};
 
 	int64_t total = 0;
@@ -66,7 +74,7 @@ export void day5_2() {
 	auto [ordering, updates] = file_input();
 
 	const auto is_before = [&ordering](int a, int b) {
-		return ranges::binary_search(ordering, pair{a, b});
+		return ordering.contains(pair{a, b});
 	};
 
 	int64_t total = 0;
