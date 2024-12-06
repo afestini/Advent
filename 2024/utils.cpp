@@ -12,6 +12,8 @@ export struct Vec2 {
 	Vec2& operator+=(Vec2 v) { x += v.x; y += v.y; return *this; }
 	friend Vec2 operator-(Vec2 a, Vec2 b) { return Vec2 {.x = a.x - b.x, .y = a.y - b.y}; }
 	Vec2& operator-=(Vec2 v) { x -= v.x; y -= v.y; return *this; }
+
+	auto operator<=>(const Vec2&) const = default;
 };
 
 
@@ -36,6 +38,12 @@ export struct Map2D {
 
 	const char& operator[](Vec2 pos) const {
 		return grid[pos.y][pos.x];
+	}
+
+	// Looks weird, but one less check
+	bool is_in_bounds(Vec2 pos) const {
+		return static_cast<size_t>(pos.x) < Width()
+			&& static_cast<size_t>(pos.y) < Height();
 	}
 
 	size_t Width() const { return grid[0].size(); }
