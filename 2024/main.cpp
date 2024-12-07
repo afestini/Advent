@@ -24,7 +24,7 @@ int main() {
 	day5_2();
 
 	day6_1();
-	day6_2();
+	//day6_2();
 
 	day7_1();
 	day7_2();
