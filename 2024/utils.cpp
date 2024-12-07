@@ -6,14 +6,20 @@ using namespace std;
 
 
 export struct Vec2 {
-	int x {};
-	int y {};
 	friend Vec2 operator+(Vec2 a, Vec2 b) { return Vec2 {.x = a.x + b.x, .y = a.y + b.y}; }
 	Vec2& operator+=(Vec2 v) { x += v.x; y += v.y; return *this; }
 	friend Vec2 operator-(Vec2 a, Vec2 b) { return Vec2 {.x = a.x - b.x, .y = a.y - b.y}; }
 	Vec2& operator-=(Vec2 v) { x -= v.x; y -= v.y; return *this; }
 
 	auto operator<=>(const Vec2&) const = default;
+
+	int x {};
+	int y {};
+};
+
+
+export struct Vec2Hash {
+	size_t operator()(Vec2 a) const { return static_cast<size_t>(a.x) << 32 | a.y; };
 };
 
 
