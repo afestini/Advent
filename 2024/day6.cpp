@@ -57,23 +57,23 @@ static char dir2bit(Vec2i dir) {
 
 static bool check(Map2D map, Map2D::Pos pos, Vec2i dir) {
 	std::map<Map2D::Pos, char> tmp_info;
-	auto dir_bit = dir2bit(dir);
 
 	for (;;) {
-		auto& info = tmp_info[pos];
-		if (info & dir_bit) return true;
+		auto next_pos = pos + dir;
+		if (!map.is_in_bounds(next_pos)) return false;
 
-		info |= dir_bit;
+		if (map[next_pos] == '#') {
+			const auto dir_bit = dir2bit(dir);
+			auto& info = tmp_info[next_pos];
+			if (info & dir_bit) return true;
+			info |= dir_bit;
 
-		pos += dir;
-		if (!map.is_in_bounds(pos)) return false;
-
-		if (map[pos] == '#') {
-			pos -= dir;
 			dir = {-dir.y, dir.x};
-			dir_bit = dir2bit(dir);
-			pos += dir;
+			next_pos = pos + dir;
+			if (!map.is_in_bounds(next_pos)) return false;
 		}
+
+		pos = next_pos;
 	}
 }
 
@@ -92,18 +92,22 @@ export void day6_2() {
 	for (;;) {
 		map[pos] = 'X';
 
-		pos += dir;
-		if (!map.is_in_bounds(pos)) break;
+		auto next_pos = pos + dir;
+		if (!map.is_in_bounds(next_pos)) break;
 
-		if (auto& tile = map[pos]; tile == '#') {
-			pos -= dir;
+		while (map[next_pos] == '#') {
 			dir = {-dir.y, dir.x};
+			next_pos = pos + dir;
+			if (!map.is_in_bounds(next_pos)) break;
 		}
-		else if (tile == '.') {
-			auto tmp = exchange(map[pos], '#');
-			futures.emplace_back(async(launch::async, check, map, start_pos, Vec2i(0, -1)));
+
+		if (auto& tile = map[next_pos]; tile == '.') {
+			auto tmp = exchange(tile, '#');
+			futures.emplace_back(async(launch::async, check, map, start_pos, Vec2(0, -1)));
 			tile = tmp;
 		}
+
+		pos = next_pos;
 	}
 
 	const auto options = ranges::count(futures, true, &future<bool>::get);
