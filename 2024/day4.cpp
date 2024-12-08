@@ -4,6 +4,7 @@ import std;
 import utils;
 
 using namespace std;
+using namespace std::chrono;
 
 
 static int IsItXmas(const Map2D& grid, Map2D::Pos s_pos) {
@@ -27,7 +28,7 @@ static int IsItXmas(const Map2D& grid, Map2D::Pos s_pos) {
 }
 
 export void day4_1() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	const auto grid = Map2D("day4.txt");
 
@@ -38,7 +39,7 @@ export void day4_1() {
 		}
 	}
 
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 4a: {} ({})", count, duration);
 }
 
@@ -59,7 +60,7 @@ static int IsItCrossMas(const Map2D& grid, Map2D::Pos pos) {
 
 
 export void day4_2() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	const auto grid = Map2D("day4.txt");
 
@@ -70,6 +71,6 @@ export void day4_2() {
 		}
 	}
 
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 4b: {} ({})", count, duration);
 }

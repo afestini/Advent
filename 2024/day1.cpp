@@ -3,6 +3,7 @@ export module day1;
 import std;
 
 using namespace std;
+using namespace std::chrono;
 
 
 static generator<pair<int, int>> file_input() {
@@ -20,7 +21,7 @@ static generator<pair<int, int>> file_input() {
 
 
 export void day1_1() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	vector<int> left;
 	vector<int> right;
@@ -38,13 +39,13 @@ export void day1_1() {
 		sum += abs(right_num - left_num);
 	}
 
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 1a: {} ({})", sum, duration);
 }
 
 
 export void day1_2() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	vector<int> left;
 	unordered_map<int, uint64_t> counts;
@@ -59,6 +60,6 @@ export void day1_2() {
 		similarity += left_no * counts[left_no];
 	}
 
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 1b: {} ({})", similarity, duration);
 }

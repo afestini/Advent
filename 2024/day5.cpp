@@ -3,6 +3,7 @@ export module day5;
 import std;
 
 using namespace std;
+using namespace std::chrono;
 
 
 struct IntPairHash {
@@ -49,7 +50,7 @@ static auto file_input() {
 
 
 export void day5_1() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	const auto [ordering, updates] = file_input();
 
@@ -63,13 +64,13 @@ export void day5_1() {
 			total += update[update.size() / 2];
 	}
 	
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 5a: {} ({})", total, duration);
 }
 
 
 export void day5_2() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	auto [ordering, updates] = file_input();
 
@@ -85,6 +86,6 @@ export void day5_2() {
 		}
 	}
 
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 5b: {} ({})", total, duration);
 }

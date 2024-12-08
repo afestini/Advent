@@ -3,6 +3,7 @@ export module day2;
 import std;
 
 using namespace std;
+using namespace std::chrono;
 
 
 static generator<const vector<int>&> file_input() {
@@ -29,7 +30,7 @@ const auto is_safe = [](int sign, const auto& p) {
 
 
 export void day2_1() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	int safe_count = 0;
 
@@ -39,7 +40,7 @@ export void day2_1() {
 			++safe_count;
 	}
 
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 2a: {} ({})", safe_count, duration);
 }
 
@@ -71,7 +72,7 @@ static int CheckReport(span<const int> levels, int sign, int skip) {
 
 
 export void day2_2() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	int safe_count = 0;
 
@@ -86,6 +87,6 @@ export void day2_2() {
 		if (!fail_at) ++safe_count;
 	}
 	
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 2b: {} ({})", safe_count, duration);
 }

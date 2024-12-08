@@ -5,7 +5,8 @@ import std;
 using namespace std;
 
 
-export struct Vec2 {
+export template<typename T>
+struct Vec2 {
 	friend Vec2 operator+(Vec2 a, Vec2 b) { return Vec2 {.x = a.x + b.x, .y = a.y + b.y}; }
 	Vec2& operator+=(Vec2 v) { x += v.x; y += v.y; return *this; }
 	friend Vec2 operator-(Vec2 a, Vec2 b) { return Vec2 {.x = a.x - b.x, .y = a.y - b.y}; }
@@ -13,18 +14,22 @@ export struct Vec2 {
 
 	auto operator<=>(const Vec2&) const = default;
 
-	int x {};
-	int y {};
+	T x {};
+	T y {};
 };
 
 
-export struct Vec2Hash {
-	size_t operator()(Vec2 a) const { return static_cast<size_t>(a.x) << 32 | a.y; };
+export using Vec2i = Vec2<int>;
+
+
+export template<typename T> requires(sizeof(T) <= 4)
+struct Vec2Hash {
+	size_t operator()(Vec2<T> a) const { return static_cast<size_t>(a.x) << 32 | a.y; };
 };
 
 
 export struct Map2D {
-	using Pos = Vec2;
+	using Pos = Vec2i;
 
 	Map2D() = default;
 	explicit Map2D(const string& path) { Load(path); }
@@ -38,16 +43,16 @@ export struct Map2D {
 		grid.pop_back();
 	}
 
-	char& operator[](Vec2 pos) {
+	char& operator[](Vec2i pos) {
 		return grid[pos.y][pos.x];
 	}
 
-	const char& operator[](Vec2 pos) const {
+	const char& operator[](Vec2i pos) const {
 		return grid[pos.y][pos.x];
 	}
 
 	// Looks weird, but one less check
-	bool is_in_bounds(Vec2 pos) const {
+	bool is_in_bounds(Vec2i pos) const {
 		return static_cast<size_t>(pos.x) < Width()
 			&& static_cast<size_t>(pos.y) < Height();
 	}

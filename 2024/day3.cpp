@@ -3,6 +3,8 @@ export module day3;
 import std;
 
 using namespace std;
+using namespace std::chrono;
+
 
 static constexpr bool use_regex = false;
 
@@ -39,7 +41,7 @@ static int64_t EvaluateMulStr(string_view txt, size_t pos) {
 
 
 export void day3_1() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	int64_t count = 0;
 	for (const auto& txt : file_input()) {
@@ -56,13 +58,13 @@ export void day3_1() {
 		}
 	}
 
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 3a: {} ({})", count, duration);
 }
 
 
 export void day3_2() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	bool enabled = true;
 	int64_t count = 0;
@@ -105,6 +107,6 @@ export void day3_2() {
 		}
 	}
 
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 3b: {} ({})", count, duration);
 }

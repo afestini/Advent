@@ -3,6 +3,7 @@ export module day7;
 import std;
 
 using namespace std;
+using namespace std::chrono;
 
 
 struct Equation {
@@ -74,21 +75,21 @@ static int64_t sum_valid_equations(bool concat) {
 }
 
 export void day7_1() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	const auto sum = sum_valid_equations(false);
 
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 7a: {} ({})", sum, duration);
 }
 
 
 export void day7_2() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	const auto sum = sum_valid_equations(true);
 
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 7b: {} ({})", sum, duration);
 }
 
@@ -144,21 +145,21 @@ static uint64_t validate(vector<Equation>&& equations) {
 
 
 export void day7_1() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	const auto sum = validate<2>(file_input());
 
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 7a: {} ({})", sum, duration);
 }
 
 
 export void day7_2() {
-	const auto start = chrono::high_resolution_clock::now();
+	const auto start_time = high_resolution_clock::now();
 
 	const auto sum = validate<3>(file_input());
 
-	const auto duration = chrono::duration_cast<chrono::microseconds>(chrono::high_resolution_clock::now() - start);
+	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 7b: {} ({})", sum, duration);
 }
 
