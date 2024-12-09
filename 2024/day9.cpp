@@ -19,32 +19,28 @@ static string file_input() {
 export void day9_1() {
 	const auto start_time = high_resolution_clock::now();
 
-	vector<int> uncompressed;
-	deque<pair<size_t, size_t>> free_list;
+	vector<int> memory;
+	memory.reserve(100000);
 
+	// Build uncompressed memory
 	for (auto [id, size_space] : file_input() | views::chunk(2) | views::enumerate) {
-		uncompressed.append_range(vector<int>(size_space[0] - '0', static_cast<int>(id)));
-		if (size_space.size() > 1 && size_space[1] > '0') {
-			free_list.emplace_back(uncompressed.size(), size_space[1] - '0');
-			uncompressed.append_range(vector<int>(size_space[1] - '0', -1));
+		while (size_space[0]-- > '0') memory.emplace_back(static_cast<int>(id));
+		if (size_space.size() > 1) {
+			while (size_space[1]-- > '0') memory.emplace_back(-1);
 		}
 	}
 
-	while (!free_list.empty()) {
-		auto last_pos = ranges::find_last_if(uncompressed, [](auto n) {return n != -1;});
-		auto last = *last_pos.begin();
-
-		auto& free = free_list.front();
-		if (free.first >= uncompressed.size()) break;
-
-		uncompressed[free.first++] = last;
-		uncompressed.erase(last_pos.begin(), last_pos.end());
-		if (--free.second == 0)
-			free_list.erase(free_list.begin());
+	// Compress memory
+	auto free = to_address(ranges::find(memory, -1));
+	while (free < to_address(memory.end())) {
+		swap(*free, memory.back());
+		while (*++free != -1);
+		while (memory.back() == -1) memory.pop_back();
 	}
 
+	// Calculate checksum
 	size_t sum = 0;
-	for (auto [idx, id] : uncompressed | views::enumerate) {
+	for (auto [idx, id] : memory | views::enumerate) {
 		sum += idx * id;
 	}
 
@@ -62,32 +58,47 @@ struct BlockInfo {
 export void day9_2() {
 	const auto start_time = high_resolution_clock::now();
 
-	deque<BlockInfo> free_list;
+	array<priority_queue<size_t, vector<size_t>, greater<size_t>>, 10> free_list;
 	vector<BlockInfo> block_info;
+	block_info.reserve(10000);
 	size_t disk_pos = 0;
 
+	// Build block and free lists
 	for (auto [id, size_space] : file_input() | views::chunk(2) | views::enumerate) {
-	//for (auto [id, size_space] : "2333133121414131402"sv | views::chunk(2) | views::enumerate) {
 		block_info.emplace_back(id, disk_pos, static_cast<uint8_t>(size_space[0] - '0'));
 		disk_pos += size_space[0] - '0';
 
 		if (size_space.size() > 1 && size_space[1] > '0') {
-			free_list.emplace_back(0, disk_pos, static_cast<uint8_t>(size_space[1] - '0'));
+			free_list[size_space[1] - '0'].emplace(disk_pos);
 			disk_pos += size_space[1] - '0';
 		}
 	}
 
+	// Compress memory
 	for (auto& info : block_info | views::reverse) {
-		auto it = ranges::find_if(free_list, [&info](auto sz) { return sz >= info.size; }, &BlockInfo::size);
-		if (it != free_list.end() && it->pos < info.pos) {
-			info.pos = it->pos;
-			it->pos += info.size;
-			it->size -= info.size;
+		uint8_t free_size = 0;
+		for (uint8_t sz = info.size; sz < 10; ++sz) {
+			if (free_list[sz].empty()) continue;
+			if (free_size == 0 || free_list[sz].top() < free_list[free_size].top())
+				free_size = sz;
+		}
+		if (free_size == 0) continue;
 
-			if (it->size == 0) free_list.erase(it);
+		auto free_pos = free_list[free_size].top();
+		if (free_pos >= info.pos) continue;
+
+		free_list[free_size].pop();
+
+		info.pos = free_pos;
+		free_pos += info.size;
+		free_size -= info.size;
+
+		if (free_size > 0) {
+			free_list[free_size].emplace(free_pos);
 		}
 	}
 
+	// Calculate checksum
 	size_t sum = 0;
 	for (auto& block : block_info) {
 		for (size_t p = block.pos; p < block.pos + block.size; ++p) {
