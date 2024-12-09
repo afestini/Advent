@@ -1,7 +1,6 @@
 export module day9;
 
 import std;
-import utils;
 
 using namespace std;
 using namespace std::chrono;
@@ -33,9 +32,9 @@ export void day9_1() {
 	// Compress memory
 	auto free = to_address(ranges::find(memory, -1));
 	while (free < to_address(memory.end())) {
-		swap(*free, memory.back());
+		*free = memory.back();
 		while (*++free != -1);
-		while (memory.back() == -1) memory.pop_back();
+		do memory.pop_back(); while (memory.back() == -1);
 	}
 
 	// Calculate checksum
@@ -75,23 +74,22 @@ export void day9_2() {
 	}
 
 	// Compress memory
-	for (auto& info : block_info | views::reverse) {
+	for (auto& block : block_info | views::reverse) {
 		uint8_t free_size = 0;
-		for (uint8_t sz = info.size; sz < 10; ++sz) {
-			if (free_list[sz].empty()) continue;
+		for (uint8_t sz = block.size; sz < 10; ++sz) {
+			if (free_list[sz].empty() || free_list[sz].top() >= block.pos) continue;
 			if (free_size == 0 || free_list[sz].top() < free_list[free_size].top())
 				free_size = sz;
 		}
 		if (free_size == 0) continue;
 
 		auto free_pos = free_list[free_size].top();
-		if (free_pos >= info.pos) continue;
 
 		free_list[free_size].pop();
 
-		info.pos = free_pos;
-		free_pos += info.size;
-		free_size -= info.size;
+		block.pos = free_pos;
+		free_pos += block.size;
+		free_size -= block.size;
 
 		if (free_size > 0) {
 			free_list[free_size].emplace(free_pos);
@@ -101,9 +99,7 @@ export void day9_2() {
 	// Calculate checksum
 	size_t sum = 0;
 	for (auto& block : block_info) {
-		for (size_t p = block.pos; p < block.pos + block.size; ++p) {
-			sum += p * block.id;
-		}
+		sum += block.id * (block.size * (block.pos + block.pos + block.size - 1)) / 2;
 	}
 
 	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
