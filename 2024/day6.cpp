@@ -40,7 +40,6 @@ export void day6_1() {
 		if (map[pos] == '#') { // rotate right.. gotta love simple 2D
 			pos -= dir; // This is the rare case, so undoing is cheaper
 			dir = {-dir.y, dir.x};
-			pos += dir;
 		}
 	}
 
@@ -50,31 +49,29 @@ export void day6_1() {
 
 
 static char dir2bit(Vec2i dir) {
-	if (dir.y) return dir.y < 0 ? 0x1 : 0x2;
-	return dir.x < 0 ? 0x4 : 0x8;
-};
+	static constexpr array<char, 6> bits{{0x0, 0x1, 0x2, 0x0, 0x4, 0x8}};
+	return bits[2 * (dir.y + 1) + dir.x + 1];
+}
 
 
 static bool check(Map2D map, Map2D::Pos pos, Vec2i dir) {
-	std::map<Map2D::Pos, char> tmp_info;
+	vector<pair<Map2D::Pos, uint8_t>> tmp_info;
 
-	for (;;) {
-		auto next_pos = pos + dir;
-		if (!map.is_in_bounds(next_pos)) return false;
+	for (; map.is_in_bounds(pos); pos+=dir) {
+		if (map[pos] != '#') continue;
 
-		if (map[next_pos] == '#') {
-			const auto dir_bit = dir2bit(dir);
-			auto& info = tmp_info[next_pos];
-			if (info & dir_bit) return true;
-			info |= dir_bit;
+		// Did we hit the obstacle from this direction before? Otherwise mark it (vector is a tad faster)
+		auto it = ranges::find(tmp_info, pos, &pair<Map2D::Pos, uint8_t>::first);
+		auto& info = it != tmp_info.end() ? it->second : tmp_info.emplace_back(pos, '\0').second;
 
-			dir = {-dir.y, dir.x};
-			next_pos = pos + dir;
-			if (!map.is_in_bounds(next_pos)) return false;
-		}
+		const auto dir_bit = dir2bit(dir);
+		if (info & dir_bit) return true;
+		info |= dir_bit;
 
-		pos = next_pos;
+		pos -= dir;
+		dir = {-dir.y, dir.x};
 	}
+	return false;
 }
 
 
@@ -83,8 +80,7 @@ export void day6_2() {
 
 	Map2D map("day6.txt");
 
-	auto start_pos = find_start(map);
-	auto pos = start_pos;
+	auto pos = find_start(map);
 	Vec2i dir {0,-1};
 
 	vector<future<bool>> futures;
@@ -92,22 +88,18 @@ export void day6_2() {
 	for (;;) {
 		map[pos] = 'X';
 
-		auto next_pos = pos + dir;
-		if (!map.is_in_bounds(next_pos)) break;
+		pos += dir;
+		if (!map.is_in_bounds(pos)) break;
 
-		while (map[next_pos] == '#') {
+		if (auto& tile = map[pos]; tile == '#') {
+			pos -= dir;
 			dir = {-dir.y, dir.x};
-			next_pos = pos + dir;
-			if (!map.is_in_bounds(next_pos)) break;
 		}
-
-		if (auto& tile = map[next_pos]; tile == '.') {
-			auto tmp = exchange(tile, '#');
-			futures.emplace_back(async(launch::async, check, map, start_pos, Vec2(0, -1)));
+		else if (tile == '.') {
+			const auto tmp = exchange(map[pos], '#');
+			futures.emplace_back(async(launch::async, check, map, pos, dir));
 			tile = tmp;
 		}
-
-		pos = next_pos;
 	}
 
 	const auto options = ranges::count(futures, true, &future<bool>::get);

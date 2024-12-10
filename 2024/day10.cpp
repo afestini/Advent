@@ -11,9 +11,7 @@ static constexpr array<Map2D::Pos, 4> directions {{{-1,0}, {0,-1}, {0,1}, {1,0}}
 
 
 // Faster than a set for the number of peaks we'll get
-vector<Map2D::Pos> peaks;
-
-static void evaluate_trail(const Map2D& map, Map2D::Pos pos) {
+static void evaluate_trail(const Map2D& map, Map2D::Pos pos, vector<Map2D::Pos>& peaks) {
 	const auto height = map[pos];
 
 	if (height == '9') {
@@ -24,7 +22,7 @@ static void evaluate_trail(const Map2D& map, Map2D::Pos pos) {
 	for (auto dir : directions) {
 		const auto try_dir = pos + dir;
 		if (map.is_in_bounds(try_dir) && map[try_dir] == height + 1)
-			evaluate_trail(map, try_dir);
+			evaluate_trail(map, try_dir, peaks);
 	}
 }
 
@@ -35,12 +33,14 @@ export void day10_1() {
 
 	size_t total = 0;
 
+	vector<Map2D::Pos> peaks;
+
 	for (Map2D::Pos pos {0,0}; pos.y < map.Height(); ++pos.y) {
 		for (pos.x = 0; pos.x < map.Width(); ++pos.x) {
 			if (map[pos] == '0') {
-				peaks.clear();
-				evaluate_trail(map, pos);
+				evaluate_trail(map, pos, peaks);
 				total += peaks.size();
+				peaks.clear();
 			}
 		}
 	}
@@ -50,18 +50,15 @@ export void day10_1() {
 }
 
 
-static int rate_trail(const Map2D& map, Map2D::Pos pos) {
+static int rate_trail(const Map2D& map, Map2D::Pos pos, int count) {
 	const auto height = map[pos];
 
-	if (height == '9') {
-		return 1;
-	}
+	if (height == '9') return count + 1;
 
-	int count = 0;
 	for (auto dir : directions) {
 		const auto try_dir = pos + dir;
 		if (map.is_in_bounds(try_dir) && map[try_dir] == height + 1)
-			count += rate_trail(map, try_dir);
+			count = rate_trail(map, try_dir, count);
 	}
 	return count;
 }
@@ -77,7 +74,7 @@ export void day10_2() {
 	for (Map2D::Pos pos{0,0}; pos.y < map.Height(); ++pos.y) {
 		for (pos.x = 0; pos.x < map.Width(); ++pos.x) {
 			if (map[pos] == '0') {
-				total += rate_trail(map, pos);
+				total += rate_trail(map, pos, 0);
 			}
 		}
 	}

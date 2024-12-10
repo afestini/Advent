@@ -8,6 +8,7 @@ import day7;
 import day8;
 import day9;
 import day10;
+import day11;
 
 
 int main() {
@@ -27,7 +28,9 @@ int main() {
 	day5_2();
 
 	day6_1();
-	//day6_2();
+#ifdef NDEBUG
+	day6_2();
+#endif
 
 	day7_1();
 	day7_2();
@@ -40,6 +43,9 @@ int main() {
 
 	day10_1();
 	day10_2();
+
+	day11_1();
+	day11_2();
 
 	return 0;
 }

@@ -18,29 +18,36 @@ static string file_input() {
 export void day9_1() {
 	const auto start_time = high_resolution_clock::now();
 
-	vector<int> memory;
-	memory.reserve(100000);
-
-	// Build uncompressed memory
-	for (auto [id, size_space] : file_input() | views::chunk(2) | views::enumerate) {
-		while (size_space[0]-- > '0') memory.emplace_back(static_cast<int>(id));
-		if (size_space.size() > 1) {
-			while (size_space[1]-- > '0') memory.emplace_back(-1);
-		}
-	}
+	const string memory = file_input();
 
 	// Compress memory
-	auto free = to_address(ranges::find(memory, -1));
-	while (free < to_address(memory.end())) {
-		*free = memory.back();
-		while (*++free != -1);
-		do memory.pop_back(); while (memory.back() == -1);
-	}
+	struct Block {
+		char data;
+		char free;
+	};
 
-	// Calculate checksum
+	const auto begin = bit_cast<Block*>(memory.data());
+	const auto end = bit_cast<Block*>(to_address(memory.end()));
+	auto block = begin;
+	auto back = bit_cast<Block*>(&memory.back());
+
 	size_t sum = 0;
-	for (auto [idx, id] : memory | views::enumerate) {
-		sum += idx * id;
+	size_t pos = 0;
+
+	while (block < end && block->data > '0') {
+		const size_t size = block->data - '0';
+		sum += (block - begin) * (size * (pos + pos + size - 1)) / 2;
+		pos += size;
+
+		while (block->free > '0' && block < back) {
+			--block->free;
+			--back->data;
+
+			sum += (back - begin) * pos++;
+			if (back->data == '0') --back;
+		}
+
+		++block;
 	}
 
 	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
@@ -53,6 +60,7 @@ struct BlockInfo {
 	size_t pos;
 	uint8_t size;
 };
+
 
 export void day9_2() {
 	const auto start_time = high_resolution_clock::now();
