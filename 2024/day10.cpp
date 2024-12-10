@@ -7,30 +7,25 @@ using namespace std;
 using namespace std::chrono;
 
 
-static size_t evaluate_trail(const Map2D& map, Map2D::Pos start) {
-	static constexpr array<Map2D::Pos, 4> directions {{{-1,0}, {0,-1}, {0,1}, {1,0}}};
+static constexpr array<Map2D::Pos, 4> directions {{{-1,0}, {0,-1}, {0,1}, {1,0}}};
 
-	queue<Map2D::Pos> heads;
-	heads.emplace(start);
 
-	set<Map2D::Pos> peaks;
-	while (!heads.empty()) {
-		const auto pos = heads.front();
-		const auto height = map[pos];
-		heads.pop();
+// Faster than a set for the number of peaks we'll get
+vector<Map2D::Pos> peaks;
 
-		if (height == '9') {
-			peaks.emplace(pos);
-			continue;
-		}
+static void evaluate_trail(const Map2D& map, Map2D::Pos pos) {
+	const auto height = map[pos];
 
-		for (auto dir : directions) {
-			const auto try_dir = pos + dir;
-			if (map.is_in_bounds(try_dir) && map[try_dir] == height + 1)
-				heads.emplace(try_dir);
-		}
+	if (height == '9') {
+		if (!ranges::contains(peaks, pos)) peaks.emplace_back(pos);
+		return;
 	}
-	return peaks.size();
+
+	for (auto dir : directions) {
+		const auto try_dir = pos + dir;
+		if (map.is_in_bounds(try_dir) && map[try_dir] == height + 1)
+			evaluate_trail(map, try_dir);
+	}
 }
 
 export void day10_1() {
@@ -40,10 +35,13 @@ export void day10_1() {
 
 	size_t total = 0;
 
-	for (int y = 0; y < map.Height(); ++y) {
-		for (int x = 0; x < map.Width(); ++x) {
-			if (map[Map2D::Pos(x, y)] == '0')
-				total += evaluate_trail(map, Map2D::Pos(x, y));
+	for (Map2D::Pos pos {0,0}; pos.y < map.Height(); ++pos.y) {
+		for (pos.x = 0; pos.x < map.Width(); ++pos.x) {
+			if (map[pos] == '0') {
+				peaks.clear();
+				evaluate_trail(map, pos);
+				total += peaks.size();
+			}
 		}
 	}
 
@@ -52,30 +50,20 @@ export void day10_1() {
 }
 
 
-static size_t rate_trail(const Map2D& map, Map2D::Pos start) {
-	static constexpr array<Map2D::Pos, 4> directions {{{-1,0}, {0,-1}, {0,1}, {1,0}}};
+static int rate_trail(const Map2D& map, Map2D::Pos pos) {
+	const auto height = map[pos];
 
-	queue<Map2D::Pos> heads;
-	heads.emplace(start);
-
-	size_t rating = 0;
-	while (!heads.empty()) {
-		const auto pos = heads.front();
-		const auto height = map[pos];
-		heads.pop();
-
-		if (height == '9') {
-			++rating;
-			continue;
-		}
-
-		for (auto dir : directions) {
-			const auto try_dir = pos + dir;
-			if (map.is_in_bounds(try_dir) && map[try_dir] == height + 1)
-				heads.emplace(try_dir);
-		}
+	if (height == '9') {
+		return 1;
 	}
-	return rating;
+
+	int count = 0;
+	for (auto dir : directions) {
+		const auto try_dir = pos + dir;
+		if (map.is_in_bounds(try_dir) && map[try_dir] == height + 1)
+			count += rate_trail(map, try_dir);
+	}
+	return count;
 }
 
 
@@ -86,10 +74,11 @@ export void day10_2() {
 
 	size_t total = 0;
 
-	for (int y = 0; y < map.Height(); ++y) {
-		for (int x = 0; x < map.Width(); ++x) {
-			if (map[Map2D::Pos(x, y)] == '0')
-				total += rate_trail(map, Map2D::Pos(x, y));
+	for (Map2D::Pos pos{0,0}; pos.y < map.Height(); ++pos.y) {
+		for (pos.x = 0; pos.x < map.Width(); ++pos.x) {
+			if (map[pos] == '0') {
+				total += rate_trail(map, pos);
+			}
 		}
 	}
 
