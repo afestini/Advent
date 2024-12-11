@@ -45,7 +45,9 @@ int main() {
 	day10_2();
 
 	day11_1();
+#ifdef NDEBUG
 	day11_2();
+#endif
 
 	return 0;
 }
