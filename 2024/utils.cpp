@@ -19,6 +19,8 @@ struct Vec2 {
 	friend Vec2 operator-(Vec2 a, Vec2 b) { return Vec2 {.x = a.x - b.x, .y = a.y - b.y}; }
 	Vec2& operator-=(Vec2 v) { x -= v.x; y -= v.y; return *this; }
 
+	Vec2 operator-() const { return {-x, -y}; }
+
 	auto operator<=>(const Vec2&) const = default;
 
 	T x {};
