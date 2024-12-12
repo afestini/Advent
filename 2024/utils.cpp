@@ -16,8 +16,18 @@ export template<typename T>
 struct Vec2 {
 	friend Vec2 operator+(Vec2 a, Vec2 b) { return Vec2 {.x = a.x + b.x, .y = a.y + b.y}; }
 	Vec2& operator+=(Vec2 v) { x += v.x; y += v.y; return *this; }
+
 	friend Vec2 operator-(Vec2 a, Vec2 b) { return Vec2 {.x = a.x - b.x, .y = a.y - b.y}; }
 	Vec2& operator-=(Vec2 v) { x -= v.x; y -= v.y; return *this; }
+
+	friend Vec2 operator*(Vec2 a, Vec2 b) { return Vec2 {.x = a.x * b.x, .y = a.y * b.y}; }
+	Vec2& operator*=(Vec2 v) { x *= v.x; y *= v.y; return *this; }
+
+	template<typename Scalar>
+	friend Vec2 operator*(Scalar s, Vec2 v) { return Vec2 {.x = s * v.x, .y = s * v.y}; }
+
+	template<typename Scalar>
+	friend Vec2 operator*(Vec2 v, Scalar s) { return Vec2 {.x = s * v.x, .y = s * v.y}; }
 
 	Vec2 operator-() const { return {-x, -y}; }
 

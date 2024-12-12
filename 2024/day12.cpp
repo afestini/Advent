@@ -16,14 +16,15 @@ struct Plot {
 };
 
 
-static bool is_different(const Map2D& map, Vec2i pos, Vec2i pos2) {
-	return !map.is_in_bounds(pos2) || (map[pos2] & 0x7F) != (map[pos] & 0x7F);
+static bool is_different(const Map2D& map, char type, Vec2i pos2) {
+	return !map.is_in_bounds(pos2) || (map[pos2] & 0x7F) != type;
 }
 
 
 static void fill_plot(Map2D& map, Map2D::Pos pos, Plot& plot, bool count_edges) {
 	if (map[pos] & 0x80) return;
 
+	const auto plant = map[pos];
 	map[pos] |= 0x80;
 	++plot.tiles;
 
@@ -36,15 +37,15 @@ static void fill_plot(Map2D& map, Map2D::Pos pos, Plot& plot, bool count_edges) 
 		const auto right = pos + Vec2i {1, 0};
 		const auto top_right = pos + Vec2i {1, -1};
 
-		plot.edges += is_different(map, pos, top) && (is_different(map, pos, left) || !is_different(map, pos, top_left));
-		plot.edges += is_different(map, pos, bottom) && (is_different(map, pos, left) || !is_different(map, pos, bottom_left));
-		plot.edges += is_different(map, pos, left) && (is_different(map, pos, top) || !is_different(map, pos, top_left));
-		plot.edges += is_different(map, pos, right) && (is_different(map, pos, top) || !is_different(map, pos, top_right));
+		plot.edges += is_different(map, plant, top) && (is_different(map, plant, left) || !is_different(map, plant, top_left));
+		plot.edges += is_different(map, plant, bottom) && (is_different(map, plant, left) || !is_different(map, plant, bottom_left));
+		plot.edges += is_different(map, plant, left) && (is_different(map, plant, top) || !is_different(map, plant, top_left));
+		plot.edges += is_different(map, plant, right) && (is_different(map, plant, top) || !is_different(map, plant, top_right));
 	}
 
 	for (auto dir : directions) {
 		const auto neighbor = pos + dir;
-		if (!is_different(map, pos, neighbor))
+		if (!is_different(map, plant, neighbor))
 			fill_plot(map, neighbor, plot, count_edges);
 		else
 			++plot.fence_pieces;
