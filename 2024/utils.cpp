@@ -12,6 +12,10 @@ static constexpr size_t newline_len = 1;
 #endif
 
 
+template<typename T>
+concept arithmetic = is_arithmetic_v<T>;
+
+
 export template<typename T>
 struct Vec2 {
 	friend Vec2 operator+(Vec2 a, Vec2 b) { return Vec2 {.x = a.x + b.x, .y = a.y + b.y}; }
@@ -23,11 +27,26 @@ struct Vec2 {
 	friend Vec2 operator*(Vec2 a, Vec2 b) { return Vec2 {.x = a.x * b.x, .y = a.y * b.y}; }
 	Vec2& operator*=(Vec2 v) { x *= v.x; y *= v.y; return *this; }
 
-	template<typename Scalar>
+	template<arithmetic Scalar>
 	friend Vec2 operator*(Scalar s, Vec2 v) { return Vec2 {.x = s * v.x, .y = s * v.y}; }
 
-	template<typename Scalar>
+	template<arithmetic Scalar>
 	friend Vec2 operator*(Vec2 v, Scalar s) { return Vec2 {.x = s * v.x, .y = s * v.y}; }
+
+	template<arithmetic Scalar>
+	friend Vec2 operator/(Vec2 v, Scalar s) { return Vec2 {.x = v.x / s, .y = v.y / s}; }
+
+	template<arithmetic Scalar>
+	friend Vec2 operator/=(Vec2 v, Scalar s) { v.x /= s; v.y /= s; return * this; }
+
+	template<arithmetic Scalar>
+	friend Vec2 operator%(Vec2 v, Scalar s) { return Vec2 {.x = v.x % s, .y = v.y % s}; }
+
+	template<arithmetic Scalar>
+	friend Vec2 operator%=(Vec2 v, Scalar s) { v.x %= s; v.y %= s; return *this; }
+
+	friend Vec2 operator%(Vec2 a, Vec2 b) { return Vec2 {.x = a.x % b.x, .y = a.y % b.y}; }
+	Vec2 operator%=(Vec2 b) { x %= b.x; y %= b.y; return *this; }
 
 	Vec2 operator-() const { return {-x, -y}; }
 
@@ -51,6 +70,7 @@ export struct Map2D {
 	using Pos = Vec2i;
 
 	Map2D() = default;
+	Map2D(size_t width, size_t height) : grid(width* height), stride(width), width(width), height(height) {}
 	explicit Map2D(const string& path) { Load(path); }
 
 	void Load(const string& path) {
@@ -84,7 +104,6 @@ export struct Map2D {
 	size_t Width() const { return width; }
 	size_t Height() const { return height; }
 
-	//vector<string> grid;
 	vector<char> grid;
 	size_t stride = 0;
 	size_t width = 0;
