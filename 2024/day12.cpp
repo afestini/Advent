@@ -16,82 +16,59 @@ struct Plot {
 };
 
 
-static bool is_different(const Map2D& map, char type, Vec2i pos2) {
-	return !map.is_in_bounds(pos2) || (map[pos2] & 0x7F) != type;
+static bool is_different(const Map2D& map, char type, Vec2i pos) {
+	return !map.is_in_bounds(pos) || (map[pos] & 0x7F) != type;
 }
 
 
-static void fill_plot(Map2D& map, Map2D::Pos pos, Plot& plot, bool count_edges) {
+static void fill_plot(Map2D& map, Map2D::Pos pos, Plot& plot) {
 	if (map[pos] & 0x80) return;
 
 	const auto plant = map[pos];
 	map[pos] |= 0x80;
 	++plot.tiles;
 
-	if (count_edges) {
-		const auto top = pos + Vec2i {0, -1};
-		const auto left = pos + Vec2i {-1, 0};
-		const auto top_left = pos + Vec2i {-1, -1};
-		const auto bottom = pos + Vec2i {0, 1};
-		const auto bottom_left = pos + Vec2i {-1, 1};
-		const auto right = pos + Vec2i {1, 0};
-		const auto top_right = pos + Vec2i {1, -1};
-
-		plot.edges += is_different(map, plant, top) && (is_different(map, plant, left) || !is_different(map, plant, top_left));
-		plot.edges += is_different(map, plant, bottom) && (is_different(map, plant, left) || !is_different(map, plant, bottom_left));
-		plot.edges += is_different(map, plant, left) && (is_different(map, plant, top) || !is_different(map, plant, top_left));
-		plot.edges += is_different(map, plant, right) && (is_different(map, plant, top) || !is_different(map, plant, top_right));
-	}
+	// For clarity (handled in loop below).. number of edges = number of corners (vertices)
+	// For each fence, check the "left" (or counter-clockwise) end for being an inner or outer corner
+	//plot.edges += top_different && (left_different || !is_different(map, plant, top_left));
+	//plot.edges += bottom_different && (left_different || !is_different(map, plant, bottom_right));
+	//plot.edges += left_different && (top_different || !is_different(map, plant, bottom_left));
+	//plot.edges += right_different && (top_different || !is_different(map, plant, top_right));
 
 	for (auto dir : directions) {
 		const auto neighbor = pos + dir;
-		if (!is_different(map, plant, neighbor))
-			fill_plot(map, neighbor, plot, count_edges);
-		else
+		if (!is_different(map, plant, neighbor)) {
+			fill_plot(map, neighbor, plot);
+		}
+		else {
 			++plot.fence_pieces;
+			const auto rel_left = pos + Vec2i{-dir.y, dir.x};
+			plot.edges += is_different(map, plant, rel_left) || !is_different(map, plant, rel_left + dir);
+		}
 	}
 }
 
 
-export void day12_1() {
+export void day12() {
 	const auto start_time = high_resolution_clock::now();
 
 	Map2D map("day12.txt");
 
-	uint64_t price = 0;
+	uint64_t price_fences = 0;
+	uint64_t price_edges = 0;
 
 	for (Map2D::Pos pos{0,0}; pos.y < map.height; ++pos.y) {
 		for (pos.x = 0; pos.x < map.width; ++pos.x) {
 			if ((map[pos] & 0x80) == 0) {
 				Plot plot;
-				fill_plot(map, pos, plot, false);
-				price += plot.tiles * plot.fence_pieces;
+				fill_plot(map, pos, plot);
+				price_fences += plot.tiles * plot.fence_pieces;
+				price_edges += plot.tiles * plot.edges;
 			}
 		}
 	}
 
 	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
-	println("Day 12a: {} ({})", price, duration);
-}
-
-
-export void day12_2() {
-	const auto start_time = high_resolution_clock::now();
-
-	Map2D map("day12.txt");
-
-	uint64_t price = 0;
-
-	for (Map2D::Pos pos {0,0}; pos.y < map.height; ++pos.y) {
-		for (pos.x = 0; pos.x < map.width; ++pos.x) {
-			if ((map[pos] & 0x80) == 0) {
-				Plot plot;
-				fill_plot(map, pos, plot, true);
-				price += plot.tiles * plot.edges;
-			}
-		}
-	}
-
-	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
-	println("Day 12b: {} ({})", price, duration);
+	println("Day 12a: {} ({})", price_fences, duration);
+	println("Day 12b: {} ({})", price_edges, duration);
 }

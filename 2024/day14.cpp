@@ -69,12 +69,12 @@ export void day14_1() {
 }
 
 
-static bool search_tree(const Map2D& map, span<const Guard> guards) {
+static bool search_tree(const auto& map, span<const Guard> guards) {
 	for (int x = 20; x < 80; ++x) {
 		for (int y = 0; y < 80; ++y) {
 			bool tri = true;
 			for (int h = 0; tri && h < 5; ++h) {
-				if (map[{x - h, y + h}] != 'x' || map[{x + h, y + h}] != 'x') {
+				if (map[x - h, y + h] != 'x' || map[x + h, y + h] != 'x') {
 					tri = false;
 					break;
 				}
@@ -104,12 +104,13 @@ export void day14_2() {
 
 	int seconds = 1;
 	for (;; ++seconds) {
-		Map2D map(101, 103);
+		array<char, 101 * 103> grid {};
+		mdspan<char, extents<size_t, 101, 103>, layout_left> map(grid.data());
 
 		for (auto& guard : guards) {
 			guard.pos = (guard.pos + guard.vel) % map_size;
 
-			map[guard.pos] = 'x';
+			map[guard.pos.x, guard.pos.y] = 'x';
 		}
 
 		if (search_tree(map, guards)) break;
