@@ -14,6 +14,7 @@ import day12;
 import day13;
 import day14;
 import day15;
+import day16;
 
 using namespace std;
 
@@ -71,6 +72,9 @@ int main(int argc, char** args) {
 
 	day15_1();
 	day15_2();
+
+	day16_1();
+	day16_2();
 
 	return 0;
 }
