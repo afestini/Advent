@@ -1,3 +1,4 @@
+import std;
 import day1;
 import day2;
 import day3;
@@ -14,8 +15,13 @@ import day13;
 import day14;
 import day15;
 
+using namespace std;
 
-int main() {
+
+int main(int argc, char** args) {
+	if (argc > 1 && args[1] == "-i"sv)
+		day15_2(true);
+
 	day1_1();
 	day1_2();
 

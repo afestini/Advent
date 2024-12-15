@@ -10,10 +10,10 @@ using namespace std::chrono;
 
 static Vec2i move2dir(char move) {
 	switch (move) {
-	case '<': return {-1,0};
-	case '>': return {1,0};
-	case '^': return {0,-1};
-	case 'v': return {0,1};
+	case '<': return {-1, 0};
+	case '>': return {1, 0};
+	case '^': return {0, -1};
+	case 'v': return {0, 1};
 	default: return {};
 	}
 }
@@ -21,19 +21,37 @@ static Vec2i move2dir(char move) {
 
 struct Map {
 	vector<string> grid;
-	size_t width = 0;
-	size_t height = 0;
 	string movements;
 	Vec2i robot {};
 
-	bool is_wall(Vec2i pos) const { return grid[pos.y][pos.x] == '#'; }
-	bool is_box(Vec2i pos) const { return grid[pos.y][pos.x] == 'O'; }
-	bool is_box2(Vec2i pos) const { return grid[pos.y][pos.x] == '[' || grid[pos.y][pos.x] == ']'; }
-	bool is_free(Vec2i pos) const { return grid[pos.y][pos.x] == '.'; }
+	Map() {
+		ifstream input("day15.txt");
+
+		while (getline(input, grid.emplace_back())) {
+			if (grid.back().empty()) {
+				grid.pop_back();
+				break;
+			}
+		}
+
+		string line;
+		while (getline(input, line)) {
+			movements.append(line);
+		}
+	}
+
+
+	bool is_box(Vec2i pos) const {
+		const auto tile = grid[pos.y][pos.x];
+		return tile == 'O' || tile == '[' || tile == ']';
+	}
+
 	bool is(Vec2i pos, char c) const { return grid[pos.y][pos.x] == c; }
+	bool is(int x, int y, char c) const { return grid[y][x] == c; }
+
 
 	void init_robot() {
-		for (robot.y = 0; robot.y < grid.size(); ++robot.y) {
+		for (robot.y = 0; robot.y < ssize(grid); ++robot.y) {
 			if (auto x = grid[robot.y].find('@'); x != string::npos) {
 				robot.x = static_cast<int>(x);
 				break;
@@ -41,202 +59,146 @@ struct Map {
 		}
 	}
 
+
 	void scale() {
 		for (auto& line : grid) {
-			string wider;
-			wider.reserve(2 * line.size());
+			string scaled;
 			for (char c : line) {
-				if (c == 'O') wider.append("[]");
-				else if (c == '@') wider.append("@.");
-				else {
-					wider.push_back(c);
-					wider.push_back(c);
+				switch (c) {
+				case '#': scaled.append("##"); break;
+				case '.': scaled.append(".."); break;
+				case '@': scaled.append("@."); break;
+				case 'O': scaled.append("[]"); break;
 				}
 			}
-
-			swap(line, wider);
-		}
-
-		init_robot();
-	}
-
-	void move(char mv) {
-		const auto dir = move2dir(mv);
-		auto pos = robot + dir;
-		if (is_wall(pos)) return;
-
-		int shifted = 0;
-		while (!is_free(pos)) {
-			if (is_wall(pos)) return;
-			if (is_box(pos)) ++shifted;
-			pos += dir;
-		}
-
-		grid[robot.y][robot.x] = '.';
-		robot += dir;
-		grid[robot.y][robot.x] = '@';
-
-		pos = robot + dir;
-		for (int i = 0; i < shifted; ++i) {
-			grid[pos.y][pos.x] = 'O';
-			pos += dir;
+			swap(line, scaled);
 		}
 	}
 
-
-	bool is_blocked(int x0, int x1, int y, int dy) {
-		for (Vec2i pos {x0, y}; pos.x <= x1; ++pos.x) {
-			if (is_wall(pos)) return true;
-
-			if (is(pos, '[')) {
-				if (is_blocked(pos.x, pos.x + 1, pos.y + dy, dy)) return true;
-			}
-			if (is(pos, ']')) {
-				if (is_blocked(pos.x - 1, pos.x, pos.y + dy, dy)) return true;
-			}
-		}
-		return false;
-	}
-
-
-	void push(int x0, int x1, int y, int dy) {
-		for (Vec2i pos {x0, y}; pos.x <= x1; ++pos.x) {
-			if (is(pos, '[')) {
-				push(pos.x, pos.x + 1, pos.y + dy, dy);
-			}
-			if (is(pos, ']')) {
-				push(pos.x - 1, pos.x, pos.y + dy, dy);
-			}
-		}
-		for (Vec2i pos {x0, y}; pos.x <= x1; ++pos.x) {
-			if (is(pos, '[')) {
-				grid[pos.y][pos.x] = '.';
-				grid[pos.y][pos.x + 1] = '.';
-				grid[pos.y + dy][pos.x] = '[';
-				grid[pos.y + dy][pos.x + 1] = ']';
-			}
-			if (is(pos, ']')) {
-				grid[pos.y][pos.x - 1] = '.';
-				grid[pos.y][pos.x] = '.';
-				grid[pos.y + dy][pos.x - 1] = '[';
-				grid[pos.y + dy][pos.x] = ']';
-			}
-		}
-	}
-
-
-	void move2(char mv) {
-		// Nothing changed for left/right
-		const auto dir = move2dir(mv);
-		auto pos = robot + dir;
-
-		if (dir.y == 0) {
-			if (is_wall(pos)) return;
-
-			int shifted = 0;
-			while (!is_free(pos)) {
-				if (is_wall(pos)) return;
-				if (is_box2(pos)) ++shifted;
-				pos += dir;
-			}
-
-			for (Vec2i dst = robot + (shifted + 1) * dir; dst != robot; dst -= dir) {
-				grid[dst.y][dst.x] = grid[dst.y][dst.x - dir.x];
-			}
-			grid[robot.y][robot.x] = '.';
-			robot += dir;
-			return;
-		}
-
-		if (is_blocked(pos.x, pos.x, pos.y, dir.y)) return;
-
-		push(pos.x, pos.x, pos.y, dir.y);
-
-		grid[robot.y][robot.x] = '.';
-		robot += dir;
-		grid[robot.y][robot.x] = '@';
-	}
 
 	void print() {
 		system("cls");
 		for (auto& line : grid) println("{}", line);
-		println();
 	}
-};
 
-static Map file_input() {
-	ifstream input("day15.txt");
 
-	Map map;
+	int gps_sum(char box) {
+		int sum = 0;
+		for (int y = 0; y < ssize(grid); ++y) {
+			for (int x = 0; x < ssize(grid[y]); ++x) {
+				if (grid[y][x] == box) sum += 100 * y + x;
+			}
+		}
+		return sum;
+	}
 
-	while (getline(input, map.grid.emplace_back())) {
-		if (map.grid.back().empty()) {
-			map.grid.pop_back();
-			break;
+	void move_p1(char mv) {
+		const auto dir = move2dir(mv);
+
+		auto pos = robot + dir;
+		for (; !is(pos, '.'); pos += dir)
+			if (is(pos, '#')) return; // Bail, we can't move
+
+		for (; pos != robot; pos -= dir)
+			swap(grid[pos.y][pos.x], grid[pos.y - dir.y][pos.x - dir.x]);
+
+		// For historic reasons: part 1 can be much simpler.. set the "end of the line" to a box,
+		// and overwrite the new robot position. No point in iterating and actually "moving" anything.
+		//	grid[pos.y][pos.x] = 'O';
+		//	grid[robot.y + dir.y][robot.x + dir.x] = '@';
+		//	grid[robot.y][robot.x] = '.';
+
+		robot += dir;
+	}
+
+
+	bool is_blocked(int x, int y, int dy) {
+		const auto tile = grid[y][x];
+
+		if (tile == '.') return false;
+		if (tile == '#') return true;
+
+		// Adjust x, so we handle left/right side without further case checks
+		if (tile == ']') --x;
+
+		// It's just a single aligned box in front of us, don't split
+		if (is(x, y + dy, '[')) return is_blocked(x, y + dy, dy);
+
+		return is_blocked(x, y + dy, dy) || is_blocked(x + 1, y + dy, dy);
+	}
+
+
+	void push(int x, int y, int dy) {
+		if (is(x, y, '.')) return;
+
+		// Adjust x, so we handle left/right side without further case checks
+		if (is(x, y, ']')) --x;
+
+		push(x, y + dy, dy);
+		swap(grid[y + dy][x], grid[y][x]);
+
+		push(x + 1, y + dy, dy);
+		swap(grid[y + dy][x + 1], grid[y][x + 1]);
+	}
+
+
+	void move_p2(char mv) {
+		const auto dir = move2dir(mv);
+
+		// Sideways didn't change
+		if (dir.y == 0) return move_p1(mv);
+
+		const auto next_pos = robot + dir;
+		if (!is_blocked(next_pos.x, next_pos.y, dir.y)) {
+			push(next_pos.x, next_pos.y, dir.y);
+
+			grid[robot.y][robot.x] = '.';
+			robot = next_pos;
+			grid[robot.y][robot.x] = '@';
 		}
 	}
 
-	string line;
-	while (getline(input, line)) {
-		map.movements.append(line);
-	}
-
-	map.width = map.grid[0].size();
-	map.height = map.grid.size();
-	map.init_robot();
-
-	return map;
-}
+};
 
 
 export void day15_1() {
 	const auto start_time = high_resolution_clock::now();
 
-	auto map = file_input();
+	Map map;
+	map.init_robot();
 
-	for (char move : map.movements) {
-		map.move(move);
-	}
-	//map.print();
+	for (const char move : map.movements) map.move_p1(move);
 
-	size_t sum = 0;
-	for (Vec2i pos {}; pos.y < ssize(map.grid); ++pos.y) {
-		for (pos.x = 0; pos.x < ssize(map.grid[pos.y]); ++pos.x) {
-			if (map.is_box(pos)) sum += 100 * pos.y + pos.x;
-		}
-	}
+	const size_t sum = map.gps_sum('O');
 
 	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 15a: {} ({})", sum, duration);
 }
 
 
-export void day15_2() {
+export void day15_2(bool interactive = false) {
 	const auto start_time = high_resolution_clock::now();
 
-	auto map = file_input();
-
+	Map map;
 	map.scale();
-	map.print();
+	map.init_robot();
 
-	for (char move : map.movements) {
-	//for (;;){
-		/*auto move = _getch();
-		if (move == 'j') move = '<';
-		if (move == 'i') move = '^';
-		if (move == 'l') move = '>';
-		if (move == 'k') move = 'v';*/
-		map.move2(move);
-		//map.print();
-	}
-	//map.print();
-
-	size_t sum = 0;
-	for (Vec2i pos {}; pos.y < ssize(map.grid); ++pos.y) {
-		for (pos.x = 0; pos.x < ssize(map.grid[pos.y]); ++pos.x) {
-			if (map.grid[pos.y][pos.x] == '[') sum += 100 * pos.y + pos.x;
+	if (interactive) {
+		for (;;) {
+			map.print();
+			auto move = static_cast<char>(_getch());
+			if (move == 'i' || move == 'w') move = '^';
+			if (move == 'j' || move == 'a') move = '<';
+			if (move == 'k' || move == 's') move = 'v';
+			if (move == 'l' || move == 'd') move = '>';
+			map.move_p2(move);
 		}
 	}
+	else {
+		for (const char move : map.movements) map.move_p2(move);
+	}
+
+	const size_t sum = map.gps_sum('[');
 
 	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 15b: {} ({})", sum, duration);
