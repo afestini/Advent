@@ -66,7 +66,10 @@
     <ClCompile Include="day15.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="day16y.cpp">
+    <ClCompile Include="day17.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="day16.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
