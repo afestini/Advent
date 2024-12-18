@@ -25,9 +25,7 @@ struct Step1 {
 	Vec2i dir;
 	int cost;
 
-	bool operator<(const Step1& s) const {
-		return cost > s.cost;
-	}
+	bool operator<(const Step1& s) const { return cost > s.cost; }
 };
 
 
@@ -37,7 +35,7 @@ static int find_goal_p1() {
 	q.emplace(get_start(map), Vec2i {1,0}, 0);
 
 	while (!q.empty()) {
-		auto step = q.top();
+		const Step1 step = move(q.top());
 		q.pop();
 
 		if (map[step.pos] == 'E') return step.cost;
@@ -56,44 +54,54 @@ static int find_goal_p1() {
 }
 
 
+struct Tile {
+	int dir2idx(Vec2i dir) { return (dir.y + 1) / 2 * 2 + ((dir.x + 1) / 2); }
+
+	int cost(Vec2i dir) { return cost_from[dir2idx(dir)].second; }
+	void cost(Vec2i dir, int new_cost) { cost_from[dir2idx(dir)].second = new_cost; }
+
+	vector<Vec2i>& path(Vec2i dir) { return cost_from[dir2idx(dir)].first; }
+
+	array<pair<vector<Vec2i>, int>, 4> cost_from {};
+};
+
+
 struct Step2 {
+	vector<Vec2i>* path = nullptr;
 	Vec2i pos;
 	Vec2i dir;
 	int cost;
-	vector<Vec2i> path;
 
 	bool operator<(const Step2& s) const {
 		return cost > s.cost;
 	}
 };
 
-struct Tile {
-	map<Vec2i, int> seen_from;
-	//Tile* next = nullptr;
-};
 
-
+/*
 static pair<int, size_t> find_goal_p2() {
 	Map2D map("day16.txt");
-	priority_queue<Step2> q;
-	q.emplace(get_start(map), Vec2i {1,0}, 0);
-
 	vector<Tile> tiles(map.width * map.height);
+
+	priority_queue<Step2> q;
+	auto start = get_start(map);
+	q.emplace(&tiles[start.y * map.width + start.x], start, Vec2i {1,0}, 0);
 
 	int max_cost = numeric_limits<int>::max();
 	set<Vec2i> cheapest;
 
 	while (!q.empty()) {
-		auto step = q.top();
+		auto step = move(q.top());
 		q.pop();
 
 		if (step.cost > max_cost) continue;
 
 		auto& tile = tiles[step.pos.y * map.width + step.pos.x];
-		if (tile.seen_from.contains(step.dir) && tile.seen_from[step.dir] < step.cost) continue;
-		tile.seen_from[step.dir] = step.cost;
+		if (tile.cost(step.dir) && tile.cost(step.dir) < step.cost) continue;
+		tile.cost(step.dir, step.cost);
 
-		step.path.emplace_back(step.pos);
+		tile.path(step.dir) = step.from->path;
+		tile.path(step.dir).emplace_back(step.pos);
 
 		if (map[step.pos] == 'E') {
 			max_cost = step.cost;
@@ -113,7 +121,7 @@ static pair<int, size_t> find_goal_p2() {
 
 	return {max_cost, cheapest.size()};
 }
-
+*/
 
 export void day16_1() {
 	const auto start_time = high_resolution_clock::now();
@@ -128,7 +136,7 @@ export void day16_1() {
 export void day16_2() {
 	const auto start_time = high_resolution_clock::now();
 
-	const size_t good_spots = find_goal_p2().second;
+	const size_t good_spots = 0;// find_goal_p2().second;
 
 	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
 	println("Day 16b: {} ({})", good_spots, duration);

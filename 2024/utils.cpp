@@ -101,6 +101,15 @@ export struct Map2D {
 			&& static_cast<size_t>(pos.y) < height;
 	}
 
+	void print() const {
+		for (int y = 0; y < height; ++y) {
+			for (int x = 0; x < width; ++x) {
+				std::print("{}", (*this)[Vec2i(x, y)]);
+			}
+			println();
+		}
+	}
+
 	size_t Width() const { return width; }
 	size_t Height() const { return height; }
 
