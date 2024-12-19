@@ -16,7 +16,7 @@ template<typename T>
 concept arithmetic = is_arithmetic_v<T>;
 
 
-export template<typename T>
+export template<arithmetic T>
 struct Vec2 {
 	friend Vec2 operator+(Vec2 a, Vec2 b) { return Vec2 {.x = a.x + b.x, .y = a.y + b.y}; }
 	Vec2& operator+=(Vec2 v) { x += v.x; y += v.y; return *this; }
