@@ -21,7 +21,7 @@ static vector<Line> ReadMap() {
 	string line;
 	while (getline(input, line)) {
 		auto& entry = gears.emplace_back();
-		ispanstream str(line);
+		ispanstream str(span(line.begin(), line.end()));
 		str >> entry.pattern;
 		while (str) {
 			int group;

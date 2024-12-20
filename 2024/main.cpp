@@ -19,6 +19,7 @@ import day17;
 import day18;
 import day19;
 import day20;
+import day21;
 
 using namespace std;
 
@@ -92,7 +93,13 @@ int main(int argc, char** args) {
 #endif
 
 	day20_1();
+#ifdef NDEBUG
 	day20_2();
+	day20_2_alternative();
+#endif
+
+	day21_1();
+	day21_2();
 
 	return 0;
 }

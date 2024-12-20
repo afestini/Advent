@@ -41,7 +41,7 @@ static vector<Hail> ReadInput() {
 
 		for (int idx = 0; const auto corner : views::split(line, '@')) {
 			for (const auto coord : views::split(corner, ',')) {
-				ispanstream(coord) >> *coords[idx++];
+				ispanstream(span(coord)) >> *coords[idx++];
 			}
 		}
 	}

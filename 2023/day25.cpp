@@ -46,7 +46,7 @@ static Graph ReadInput() {
 	string name;
 	string con_name;
 	while (getline(input, line)) {
-		ispanstream str(line);
+		ispanstream str(span(line.begin(), line.end()));
 		str >> name;
 		name.pop_back();
 

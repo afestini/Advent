@@ -23,7 +23,7 @@ static Map ParseMap() {
 	string key, ignore, left, right;
 	while (getline(input, line)) {
 		if (line.empty()) continue;
-		ispanstream(line) >> key >> ignore >> left >> right;
+		ispanstream(string_view(line)) >> key >> ignore >> left >> right;
 		the_map.nodes.emplace(key, pair(left.substr(1, 3), right.substr(0, 3)));
 	}
 

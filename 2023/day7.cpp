@@ -45,7 +45,7 @@ static vector<Hand> ParseHands() {
 	data.resize(filesystem::file_size("day7.txt"));
 	input.read(data.data(), data.size());
 
-	ispanstream str(data);
+	ispanstream str(span(data.begin(), data.end()));
 	do {
 		auto& hand = hands.emplace_back();
 		str >> hand.cards >> hand.bid;
