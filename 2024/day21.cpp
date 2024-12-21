@@ -36,22 +36,19 @@ static unordered_map<char, Vec2i> dpad_step = {
 
 
 static bool moves_valid(Vec2i from, string_view moves) {
-	bool valid = true;
-	auto pos = from;
-	for (auto step : moves) {
-		if ((pos += dpad_step[step]) == Vec2i {})
-			valid = false;
-	}
-	return valid;
+	const auto hits_gap = [pos = from](auto step) mutable {
+		return (pos += dpad_step[step]) == Vec2i {};
+	};
+	return ranges::none_of(moves, hits_gap);
 }
 
 
 static vector<string> dpad_permutations(Vec2i from, Vec2i to) {
 	const auto move = to - from;
 	string moves = string()
-	     .append(max(0, move.x), '>')
 	     .append(max(0, -move.x), '<')
-	     .append(max(0, move.y), '^')
+	     .append(max(0,  move.x), '>')
+	     .append(max(0,  move.y), '^')
 	     .append(max(0, -move.y), 'v');
 
 	vector<string> permutations;
@@ -59,7 +56,6 @@ static vector<string> dpad_permutations(Vec2i from, Vec2i to) {
 		if (moves_valid(from, moves))
 			permutations.emplace_back(moves).push_back('A');
 	} while (ranges::next_permutation(moves).found);
-
 	return permutations;
 }
 
@@ -71,11 +67,9 @@ static size_t get_cost(Vec2i from, Vec2i to, int depth);
 
 static size_t get_length(string_view sequence, auto& pad_pos, int depth) {
 	size_t len = 0;
-	Vec2i pos = pad_pos['A'];
-	while (!sequence.empty()) {
-		const auto next_pos = pad_pos[sequence.front()];
+	for (Vec2i pos = pad_pos['A']; char next : sequence) {
+		const auto next_pos = pad_pos[next];
 		len += get_cost(pos, next_pos, depth);
-		sequence.remove_prefix(1);
 		pos = next_pos;
 	}
 	return len;
@@ -83,7 +77,7 @@ static size_t get_length(string_view sequence, auto& pad_pos, int depth) {
 
 
 static size_t get_cost(Vec2i from, Vec2i to, int depth) {
-	auto [it, added] = cost_cache.try_emplace({from,to, depth});
+	auto [it, added] = cost_cache.try_emplace({from, to, depth});
 	if (!added) return it->second;
 
 	const auto options = dpad_permutations(from, to);
@@ -91,11 +85,8 @@ static size_t get_cost(Vec2i from, Vec2i to, int depth) {
 	if (depth == 0)
 		return it->second = ranges::min(options, {}, &string::size).size();
 
-	size_t shortest = numeric_limits<size_t>::max();
-	for (const auto& option : options) {
-		shortest = min(shortest, get_length(option, dpad_pos, depth - 1));
-	}
-	return it->second = shortest;
+	const auto lengths = views::transform(options, [depth](string_view s) {return get_length(s, dpad_pos, depth - 1);});
+	return it->second = ranges::min(lengths);
 }
 
 
@@ -115,7 +106,7 @@ export void day21_1() {
 	const auto total_complexity = code_complexities(file_input(), 2);
 
 	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
-	println("Day 20a: {} ({})", total_complexity, duration);
+	println("Day 21a: {} ({})", total_complexity, duration);
 }
 
 
@@ -125,5 +116,5 @@ export void day21_2() {
 	const auto total_complexity = code_complexities(file_input(), 25);
 
 	const auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start_time);
-	println("Day 20b: {} ({})", total_complexity, duration);
+	println("Day 21b: {} ({})", total_complexity, duration);
 }
