@@ -118,3 +118,32 @@ export struct Map2D {
 	size_t width = 0;
 	size_t height = 0;
 };
+
+
+
+export template<typename ResultType, typename...Args>
+struct CachedCall {
+	struct TupleHasher {
+		static size_t hash_em(const Args&...keys) {
+			uint64_t seed = 0;
+			((seed ^= hash<Args>{}(keys) + 0x9e3779b9 + (seed << 6) + (seed >> 2)), ...);
+			return seed;
+		}
+
+		size_t operator()(const tuple<Args...>& keys) const { return apply(hash_em, keys); }
+	};
+
+	template<typename C>
+	explicit CachedCall(ResultType(C::* func)(Args...)) : call(func) {}
+	explicit CachedCall(ResultType(*func)(Args...)) : call(func) {}
+	explicit CachedCall(function<ResultType(Args...)>&& func) : call(func) {}
+
+	ResultType operator()(Args... args) {
+		auto [it, not_cached] = cache.try_emplace(tuple(args...));
+		if (not_cached) it->second = invoke(call, forward<Args>(args)...);
+		return it->second;
+	}
+
+	function<ResultType(Args...)> call;
+	unordered_map<tuple<Args...>, ResultType, TupleHasher> cache;
+};
