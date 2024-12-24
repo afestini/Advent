@@ -121,6 +121,18 @@ export struct Map2D {
 
 
 
+export template<size_t Size>
+array<string_view, Size> split(string_view str, string_view delim) {
+	auto tokens = views::split(str, delim);
+	array<string_view, Size> out;
+	for (auto [idx, token] : tokens | views::enumerate)
+		out[idx] = string_view(token);
+
+	return out;
+}
+
+
+
 export template<typename ResultType, typename...Args>
 struct CachedCall {
 	struct TupleHasher {

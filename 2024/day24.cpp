@@ -1,6 +1,7 @@
 export module day24;
 
 import std;
+import utils;
 
 using namespace std;
 using namespace std::chrono;
@@ -93,38 +94,30 @@ static auto file_input() {
 	while (getline(input, line)) {
 		if (line.empty()) break;
 
-		System::Gate* gate = nullptr;
-		for (auto [idx, str] : views::split(line, ": "sv) | views::enumerate) {
-			string name(str.begin(), str.end());
-			if (idx == 0) {
-				gate = &system.gates.try_emplace(name).first->second;
-				gate->name = name;
-			}
-			else gate->value = (str[0] == '1');
-		}
+		auto [name, value] = split<2>(line, ": ");
+		auto& gate = system.gates[string(name)];
+		gate.value = (value[0] == '1');
 	}
 
 	while (getline(input, line)) {
-		System::Gate gate;
+		const auto [in1, op, in2, _, name] = split<5>(line, " ");
 
-		for (auto [idx, str] : views::split(line, " "sv) | views::enumerate) {
-			string name(str.begin(), str.end());
-			switch (idx) {
-			case 0: gate.in1 = &system.gates[name]; break;
-			case 1: gate.op_name = name; break;
-			case 2: gate.in2 = &system.gates[name]; break;
-			case 4: gate.name = name; break;
-			default: break;
-			}
-		}
-		auto& g = system.gates[gate.name];
-		gate.outs = g.outs;
-		if (gate.in1->op_name > gate.in2->op_name) swap(gate.in1, gate.in2);
-		g = gate;
-		g.in1->outs.push_back(&g);
-		g.in2->outs.push_back(&g);
-		if (g.name[0] == 'z')
-			system.outputs.emplace_back(&g);
+		auto& gate = system.gates[string(name)];
+
+		gate.name = name;
+		if (gate.name[0] == 'z')
+			system.outputs.emplace_back(&gate);
+
+		gate.op_name = op;
+
+		gate.in1 = &system.gates[string(in1)];
+		gate.in1->outs.push_back(&gate);
+
+		gate.in2 = &system.gates[string(in2)];
+		gate.in2->outs.push_back(&gate);
+
+		if (gate.in1->op_name > gate.in2->op_name)
+			swap(gate.in1, gate.in2);
 	}
 
 	for (auto& gate : system.gates | views::values)
