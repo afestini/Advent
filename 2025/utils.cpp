@@ -137,6 +137,15 @@ array<string_view, Size> split(string_view str, string_view delim) {
 
 
 
+export template<integral T>
+uint64_t str_as(string_view s) {
+	T val = 0;
+	from_chars(s.data(), s.data() + s.size(), val);
+	return val;
+}
+
+
+
 export template<typename ResultType, typename...Args>
 struct CachedCall {
 	struct TupleHasher {

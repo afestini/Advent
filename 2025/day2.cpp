@@ -1,16 +1,11 @@
 export module day2;
 
 import std;
+import utils;
 
 using namespace std;
 using namespace std::chrono;
 
-
-static uint64_t as_int(string_view s) {
-	uint64_t val = 0;
-	from_chars(s.data(), s.data() + s.size(), val);
-	return val;
-}
 
 
 static generator<pair<uint64_t, uint64_t>> file_input() {
@@ -18,8 +13,8 @@ static generator<pair<uint64_t, uint64_t>> file_input() {
 	string line;
 	while (getline(input, line)) {
 		for (const auto r : views::split(line, ',') | views::transform([](const auto& r) { return string_view(r); })) {
-			const auto from = as_int(r.substr(0, r.find('-')));
-			const auto to = as_int(r.substr(r.find('-') + 1));
+			const auto from = str_as<uint64_t>(r.substr(0, r.find('-')));
+			const auto to = str_as<uint64_t>(r.substr(r.find('-') + 1));
 			co_yield{ from, to };
 		}
 	}
