@@ -95,7 +95,7 @@ export struct Map2D {
 		return grid[pos.y * stride + pos.x];
 	}
 
-	char& operator[](int x, int y) {
+	char& operator[](size_t x, size_t y) {
 		return grid[y * stride + x];
 	}
 
