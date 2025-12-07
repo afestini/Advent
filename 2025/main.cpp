@@ -5,6 +5,7 @@ import day3;
 import day4;
 import day5;
 import day6;
+import day7;
 
 using namespace std;
 
@@ -27,6 +28,9 @@ int main() {
 
 	day6_1();
 	day6_2();
+
+	day7_1();
+	day7_2();
 
 	return 0;
 }
